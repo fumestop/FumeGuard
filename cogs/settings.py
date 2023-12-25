@@ -44,7 +44,7 @@ class Settings(commands.Cog):
     @app_commands.check(_settings_perms_check)
     @app_commands.checks.dynamic_cooldown(dynamic_cooldown_x)
     @app_commands.guild_only()
-    async def _set_user_log(
+    async def _set_member_log(
         self, ctx: discord.Interaction, channel: discord.TextChannel
     ):
         # noinspection PyUnresolvedReferences
@@ -79,7 +79,7 @@ class Settings(commands.Cog):
         )
 
     @_set_mod_log.error
-    @_set_user_log.error
+    @_set_member_log.error
     @_set_welcome_msg.error
     async def _settings_perms_check_error(
         self, ctx: discord.Interaction, error: app_commands.AppCommandError

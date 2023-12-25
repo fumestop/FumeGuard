@@ -167,7 +167,7 @@ async def get_member_log_channel(guild_id: int):
     pool = await aiomysql.create_pool(
         host=db_host,
         port=db_port,
-        member=db_user,
+        user=db_user,
         password=db_password,
         db=db_name,
         autocommit=True,
@@ -193,7 +193,7 @@ async def update_member_log_channel(guild_id: int, channel_id: int):
     pool = await aiomysql.create_pool(
         host=db_host,
         port=db_port,
-        member=db_user,
+        user=db_user,
         password=db_password,
         db=db_name,
         autocommit=True,
