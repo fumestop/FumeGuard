@@ -29,6 +29,8 @@ class FumeGuard(commands.AutoShardedBot):
 
 
 intents = discord.Intents.default()
+intents.members = True
+
 bot = FumeGuard(command_prefix=commands.when_mentioned_or("/"), intents=intents)
 
 bot.launch_time = datetime.utcnow()
