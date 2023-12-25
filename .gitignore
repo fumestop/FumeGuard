@@ -160,5 +160,5 @@ cython_debug/
 .idea/
 
 # FumeGuard
-#logs/
-#config.json
+logs/
+config.json
