@@ -116,7 +116,9 @@ class Moderation(commands.Cog):
     )
     @app_commands.check(_ban_perms_check)
     @app_commands.checks.dynamic_cooldown(dynamic_cooldown_x)
-    async def _unban(self, ctx: discord.Interaction, member: str, *, reason: str = None):
+    async def _unban(
+        self, ctx: discord.Interaction, member: str, *, reason: str = None
+    ):
         # noinspection PyUnresolvedReferences
         await ctx.response.defer(thinking=True)
 
@@ -357,8 +359,7 @@ class Moderation(commands.Cog):
         # noinspection PyUnresolvedReferences
         await ctx.response.defer(thinking=True)
 
-        if amount is None:
-            amount = 5
+        amount = 5 if not amount else amount
 
         if amount in list(range(1, 101)):
             try:
@@ -372,7 +373,7 @@ class Moderation(commands.Cog):
                     "overwrites and try again."
                 )
 
-            await ctx.channel.send("check mark", delete_after=5)
+            await ctx.channel.send("\U00002705", delete_after=5)
 
         else:
             return await ctx.edit_original_response(

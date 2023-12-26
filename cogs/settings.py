@@ -89,7 +89,7 @@ class Settings(commands.Cog):
             return await ctx.response.send_message(
                 "You do not have permissions to execute this command."
                 "\n **Required Permission** : *Manage Server*",
-                ephemeral=True
+                ephemeral=True,
             )
 
 
