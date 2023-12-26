@@ -36,10 +36,6 @@ class Core(commands.Cog):
 
         self._change_status.start()
 
-        await self.bot.tree.sync()
-        # self.bot.tree.copy_global_to(guild=discord.Object(id=self.community_server_id))
-        await self.bot.tree.sync(guild=discord.Object(id=self.community_server_id))
-
         self.bot.log.info("FumeGuard is ready")
 
     @commands.Cog.listener()
@@ -54,7 +50,7 @@ class Core(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_remove(self, member: discord.Member):
-        await log_member(member, False)
+        await log_member(member, join=False)
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
