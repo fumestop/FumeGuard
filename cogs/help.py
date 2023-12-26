@@ -37,6 +37,12 @@ class Help(commands.Cog):
         )
 
         embed.add_field(
+            name="Roles",
+            value=f"`newrole`, `addrole`, `removerole`, `deleterole`",
+            inline=False,
+        )
+
+        embed.add_field(
             name="Settings",
             value=f"`setmodlog`, `setuserlog`, `setwelcomemsg`",
             inline=False,

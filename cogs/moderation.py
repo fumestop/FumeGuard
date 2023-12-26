@@ -14,27 +14,24 @@ class Moderation(commands.Cog):
 
     @staticmethod
     def _kick_perms_check(ctx: discord.Interaction):
-        if ctx.guild.me.guild_permissions.kick_members:
-            return True
+        return ctx.guild.me.guild_permissions.kick_members
 
     @staticmethod
     def _ban_perms_check(ctx: discord.Interaction):
-        if ctx.guild.me.guild_permissions.ban_members:
-            return True
+        return ctx.guild.me.guild_permissions.ban_members
 
     @staticmethod
     def _clear_perms_check(ctx: discord.Interaction):
-        if ctx.guild.me.guild_permissions.manage_messages:
-            return True
+        return ctx.guild.me.guild_permissions.manage_messages
 
     @staticmethod
     def _moderate_members_perms_check(ctx: discord.Interaction):
-        if ctx.guild.me.guild_permissions.moderate_members:
-            return True
+        return ctx.guild.me.guild_permissions.moderate_members
 
     @app_commands.command(name="kick", description="Kick a member from the server.")
     @app_commands.check(_kick_perms_check)
     @app_commands.checks.dynamic_cooldown(dynamic_cooldown_x)
+    @app_commands.guild_only()
     async def _kick(
         self, ctx: discord.Interaction, member: discord.Member, *, reason: str = None
     ):
@@ -67,11 +64,18 @@ class Moderation(commands.Cog):
         await ctx.edit_original_response(
             content=f"**{member}** has been kicked from the server!"
         )
-        await log_mod_action(ctx, member, ctx.user, "Kick", reason=reason)
+        await log_mod_action(
+            ctx=ctx,
+            member=member,
+            moderator=ctx.user,
+            action="Member Kicked",
+            reason=reason,
+        )
 
     @app_commands.command(name="ban", description="Ban a member from the server")
     @app_commands.check(_ban_perms_check)
     @app_commands.checks.dynamic_cooldown(dynamic_cooldown_x)
+    @app_commands.guild_only()
     async def _ban(
         self,
         ctx: discord.Interaction,
@@ -109,13 +113,20 @@ class Moderation(commands.Cog):
         await ctx.edit_original_response(
             content=f"**{member}** has been banned from the server!"
         )
-        await log_mod_action(ctx, member, ctx.user, "Ban", reason=reason)
+        await log_mod_action(
+            ctx=ctx,
+            member=member,
+            moderator=ctx.user,
+            action="Member Banned",
+            reason=reason,
+        )
 
     @app_commands.command(
         name="unban", description="Unban a previously banned member in the server."
     )
     @app_commands.check(_ban_perms_check)
     @app_commands.checks.dynamic_cooldown(dynamic_cooldown_x)
+    @app_commands.guild_only()
     async def _unban(
         self, ctx: discord.Interaction, member: str, *, reason: str = None
     ):
@@ -148,9 +159,14 @@ class Moderation(commands.Cog):
                     await ctx.edit_original_response(
                         content=f"**{member}** has been unbanned!"
                     )
-                    await log_mod_action(ctx, user, ctx.user, "Unban", reason=reason)
 
-                    break
+                    return await log_mod_action(
+                        ctx=ctx,
+                        member=user,
+                        moderator=ctx.user,
+                        action="Member Unbanned",
+                        reason=reason,
+                    )
 
             elif isinstance(member, int):
                 try:
@@ -165,9 +181,14 @@ class Moderation(commands.Cog):
                     await ctx.edit_original_response(
                         content=f"**{member}** has been unbanned!"
                     )
-                    await log_mod_action(ctx, user, ctx.user, "Unban", reason=reason)
 
-                    break
+                    return await log_mod_action(
+                        ctx=ctx,
+                        member=user,
+                        moderator=ctx.user,
+                        action="Member Unbanned",
+                        reason=reason,
+                    )
 
             else:
                 continue
@@ -178,6 +199,7 @@ class Moderation(commands.Cog):
     @app_commands.command(name="mute", description="Timeout a member in the server.")
     @app_commands.check(_moderate_members_perms_check)
     @app_commands.checks.dynamic_cooldown(dynamic_cooldown_x)
+    @app_commands.guild_only()
     async def _mute(
         self,
         ctx: discord.Interaction,
@@ -211,13 +233,20 @@ class Moderation(commands.Cog):
             content=f"**{member}** has been timed out in the server!"
         )
 
-        await log_mod_action(ctx, member, ctx.user, "Timeout", reason)
+        await log_mod_action(
+            ctx=ctx,
+            member=member,
+            moderator=ctx.user,
+            action="Member Muted",
+            reason=reason,
+        )
 
     @app_commands.command(
         name="unmute", description="Remove the timeout for a member in the server."
     )
     @app_commands.check(_moderate_members_perms_check)
     @app_commands.checks.dynamic_cooldown(dynamic_cooldown_x)
+    @app_commands.guild_only()
     async def _unmute(
         self, ctx: discord.Interaction, member: discord.Member, *, reason: str = None
     ):
@@ -236,12 +265,19 @@ class Moderation(commands.Cog):
             content=f"**{member}** has been unmuted in the server!"
         )
 
-        await log_mod_action(ctx, member, ctx.user, "Unmute", reason)
+        await log_mod_action(
+            ctx=ctx,
+            member=member,
+            moderator=ctx.user,
+            action="Member Unmuted",
+            reason=reason,
+        )
 
     @app_commands.command(
         name="channel_mute", description="Mute a member in the channel."
     )
     @app_commands.checks.dynamic_cooldown(dynamic_cooldown_x)
+    @app_commands.guild_only()
     async def _channel_mute(
         self, ctx: discord.Interaction, member: discord.Member, *, reason: str = None
     ):
@@ -281,13 +317,19 @@ class Moderation(commands.Cog):
             content=f"**{member}** has been muted in this channel!"
         )
         await log_mod_action(
-            ctx, member, ctx.user, "Channel Mute", reason=reason, channel=ctx.channel
+            ctx=ctx,
+            member=member,
+            moderator=ctx.user,
+            action="Member Channel Muted",
+            reason=reason,
+            channel=ctx.channel,
         )
 
     @app_commands.command(
         name="channel_unmute", description="Unmute a member in the channel"
     )
     @app_commands.checks.dynamic_cooldown(dynamic_cooldown_x)
+    @app_commands.guild_only()
     async def _channel_unmute(
         self, ctx: discord.Interaction, member: discord.Member, *, reason: str = None
     ):
@@ -318,12 +360,18 @@ class Moderation(commands.Cog):
             content=f"**{member}** has been unmuted in this channel!"
         )
         await log_mod_action(
-            ctx, member, ctx.user, "Channel Unmute", reason=reason, channel=ctx.channel
+            ctx=ctx,
+            member=member,
+            moderator=ctx.user,
+            action="Member Channel Unmuted",
+            reason=reason,
+            channel=ctx.channel,
         )
 
     @app_commands.command(name="warn", description="Issue a warning to a member.")
     @app_commands.check(_kick_perms_check)
     @app_commands.checks.dynamic_cooldown(dynamic_cooldown_x)
+    @app_commands.guild_only()
     async def _warn(
         self, ctx: discord.Interaction, member: discord.Member, *, reason: str = None
     ):
@@ -347,7 +395,13 @@ class Moderation(commands.Cog):
             pass
 
         await ctx.edit_original_response(content=f"**{member}** has been warned!")
-        await log_mod_action(ctx, member, ctx.user, "Warn", reason=reason)
+        await log_mod_action(
+            ctx=ctx,
+            member=member,
+            moderator=ctx.user,
+            action="Member Warned",
+            reason=reason,
+        )
 
     @app_commands.command(
         name="clear",
@@ -355,6 +409,7 @@ class Moderation(commands.Cog):
     )
     @app_commands.check(_clear_perms_check)
     @app_commands.checks.dynamic_cooldown(dynamic_cooldown_x)
+    @app_commands.guild_only()
     async def _clear(self, ctx: discord.Interaction, amount: int = None):
         # noinspection PyUnresolvedReferences
         await ctx.response.defer(thinking=True)
@@ -375,6 +430,13 @@ class Moderation(commands.Cog):
 
             await ctx.channel.send("\U00002705", delete_after=5)
 
+            await log_mod_action(
+                ctx=ctx,
+                moderator=ctx.user,
+                action="Messages Cleared",
+                reason=f"{amount} messages cleared",
+            )
+
         else:
             return await ctx.edit_original_response(
                 content=f"The number of messages can be between 1 and 100 only."
@@ -384,6 +446,7 @@ class Moderation(commands.Cog):
         name="announce", description="Make an announcement in a channel."
     )
     @app_commands.checks.dynamic_cooldown(dynamic_cooldown_x)
+    @app_commands.guild_only()
     async def _announce(
         self,
         ctx: discord.Interaction,

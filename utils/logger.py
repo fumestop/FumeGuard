@@ -38,9 +38,9 @@ async def log_member(member: discord.Member, join: bool = True):
 
 async def log_mod_action(
     ctx: discord.Interaction,
-    member: [discord.Member, discord.User],
     moderator: discord.Member,
     action: str,
+    member: [discord.Member, discord.User] = None,
     reason: str = None,
     channel=None,
 ):
@@ -48,9 +48,6 @@ async def log_mod_action(
 
     if not channel_id:
         return
-
-    else:
-        channel_id = int(channel_id)
 
     case_num = await get_case_id(ctx.guild.id)
 
@@ -62,8 +59,12 @@ async def log_mod_action(
 
     embed.title = f"{action} | Case {case_num}"
 
-    embed.add_field(name="Name", value=f"**{member}** ({member.mention})", inline=False)
-    embed.add_field(name="ID", value=member.id, inline=False)
+    if member:
+        embed.add_field(
+            name="Name", value=f"**{member}** ({member.mention})", inline=False
+        )
+        embed.add_field(name="ID", value=member.id, inline=False)
+
     embed.add_field(
         name="Moderator", value=f"**{moderator}** ({moderator.mention})", inline=False
     )
@@ -75,6 +76,43 @@ async def log_mod_action(
         embed.add_field(name="Reason", value=reason, inline=False)
 
     await update_case_id(ctx.guild.id)
+
+    channel = ctx.guild.get_channel(channel_id)
+
+    if not channel:
+        return
+
+    await channel.send(embed=embed)
+
+
+async def log_role_action(
+    ctx: discord.Interaction,
+    role: discord.Role,
+    moderator: discord.Member,
+    action: str,
+    member: discord.Member = None,
+):
+    channel_id = await get_mod_log_channel(ctx.guild.id)
+
+    if not channel_id:
+        return
+
+    embed = discord.Embed(color=role.color)
+
+    embed.title = f"{action}"
+
+    embed.add_field(
+        name="Role Name", value=f"**{role}** ({role.mention})", inline=False
+    )
+
+    if member:
+        embed.add_field(
+            name="Member", value=f"**{member}** ({member.mention})", inline=False
+        )
+
+    embed.add_field(
+        name="Moderator", value=f"**{moderator}** ({moderator.mention})", inline=False
+    )
 
     channel = ctx.guild.get_channel(channel_id)
 

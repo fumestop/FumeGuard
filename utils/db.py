@@ -225,9 +225,7 @@ async def get_case_id(guild_id: int):
     async with pool.acquire() as conn:
         async with conn.cursor() as cur:
             # noinspection SqlNoDataSourceInspection
-            await cur.execute(
-                f"select CASE_ID from guilds where GUILD_ID={guild_id};"
-            )
+            await cur.execute(f"select CASE_ID from guilds where GUILD_ID={guild_id};")
 
             res = await cur.fetchone()
 
