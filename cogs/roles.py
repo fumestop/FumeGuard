@@ -28,7 +28,7 @@ class Roles(commands.Cog):
             app_commands.Choice(name="Default", value="default"),
             app_commands.Choice(name="Random", value="random"),
             app_commands.Choice(name="Custom", value="custom"),
-            app_commands.Choice(name="Red", value="Red"),
+            app_commands.Choice(name="Red", value="red"),
             app_commands.Choice(name="Dark Red", value="dark_red"),
             app_commands.Choice(name="Blue", value="blue"),
             app_commands.Choice(name="Dark Blue", value="dark_blue"),

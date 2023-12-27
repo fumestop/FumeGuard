@@ -49,7 +49,7 @@ class Error(commands.Cog):
 
                 embed.add_field(name="Command", value=f"`{command.name}`", inline=False)
                 embed.add_field(
-                    name="Exception", value=f"```css\n{str(error.__traceback__)}```"
+                    name="Exception", value=f"```css\n{str(error)}```"
                 )
 
                 channel = self.bot.get_channel(self.log_channel_id)
