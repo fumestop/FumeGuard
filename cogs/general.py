@@ -43,12 +43,12 @@ class General(commands.Cog):
         await ctx.response.defer(thinking=True)
 
         view = discord.ui.View()
-        view.add_item(discord.ui.Button(label="Website", url="https://fumes.top/"))
+        view.add_item(discord.ui.Button(label="Website", url="https://fumes.top"))
         view.add_item(
-            discord.ui.Button(label="Homepage", url="https://fumes.top/fumetune")
+            discord.ui.Button(label="Homepage", url="https://fumes.top/fumeguard")
         )
         view.add_item(
-            discord.ui.Button(label="Twitter", url="https://twitter.com/fumestop")
+            discord.ui.Button(label="Twitter", url="https://x.com/fumestop")
         )
 
         await ctx.edit_original_response(
@@ -67,14 +67,8 @@ class General(commands.Cog):
         view = discord.ui.View()
         view.add_item(
             discord.ui.Button(
-                label="With Required Permissions (Customizable)",
-                url="https://fumes.top/fumetune/invite",
-            )
-        )
-        view.add_item(
-            discord.ui.Button(
-                label="With Administrator Permissions",
-                url="https://fumes.top/fumetune/invite?admin=true",
+                label="Invite",
+                url="https://fumes.top/fumeguard/invite",
             )
         )
 
@@ -92,7 +86,7 @@ class General(commands.Cog):
 
         view = discord.ui.View()
         view.add_item(
-            discord.ui.Button(label="Vote", url="https://top.gg/bot/123456789")
+            discord.ui.Button(label="Vote", url="https://fumes.top/fumeguard/vote")
         )
 
         await ctx.edit_original_response(
