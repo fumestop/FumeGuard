@@ -36,7 +36,9 @@ class General(commands.Cog):
 
         await ctx.edit_original_response(embed=embed)
 
-    @app_commands.command(name="web", description="Shows web resources about FumeGuard.")
+    @app_commands.command(
+        name="web", description="Shows web resources about FumeGuard."
+    )
     @app_commands.checks.dynamic_cooldown(dynamic_cooldown_x)
     async def _web(self, ctx: discord.Interaction):
         # noinspection PyUnresolvedReferences
@@ -47,9 +49,7 @@ class General(commands.Cog):
         view.add_item(
             discord.ui.Button(label="Bot Homepage", url="https://fumes.top/fumeguard")
         )
-        view.add_item(
-            discord.ui.Button(label="Twitter", url="https://x.com/fumestop")
-        )
+        view.add_item(discord.ui.Button(label="Twitter", url="https://x.com/fumestop"))
 
         await ctx.edit_original_response(
             content="Here are the links to various FumeGuard resources on the web:",

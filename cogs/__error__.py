@@ -1,4 +1,7 @@
 import json
+import string
+import random
+import traceback
 
 import discord
 from discord import app_commands
@@ -23,8 +26,6 @@ class Error(commands.Cog):
             ctx: discord.Interaction,
             error: app_commands.AppCommandError,
         ):
-            command = ctx.command
-
             if isinstance(error, app_commands.CheckFailure):
                 return
 
@@ -47,8 +48,27 @@ class Error(commands.Cog):
 
                 embed.description = ""
 
-                embed.add_field(name="Command", value=f"`{command.name}`", inline=False)
-                embed.add_field(name="Exception", value=f"```css\n{str(error)}```")
+                embed.add_field(
+                    name="Command", value=f"`{ctx.command.name}`", inline=False
+                )
+                embed.add_field(
+                    name="Server",
+                    value=f"**{ctx.guild.name}** `({ctx.guild.id})`",
+                    inline=False,
+                )
+
+                file_name = (
+                    f"logs/error-{ctx.guild.id}-{ctx.command.name}-"
+                    f"{''.join(random.choices(string.ascii_letters + string.digits, k=10))}.log"
+                )
+
+                with open(file_name, "w") as f:
+                    f.write("".join(traceback.format_exception(error)))
+
+                embed.add_field(
+                    name="Log",
+                    value=f"Saved to `{file_name}`",
+                )
 
                 channel = self.bot.get_channel(self.log_channel_id)
 
