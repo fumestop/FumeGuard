@@ -15,7 +15,7 @@ with open("config.json") as json_file:
 
 logging.basicConfig(
     level=logging.INFO,
-    filename="logs/fumeguard.log",
+    filename=f"logs/fumeguard-{datetime.now().strftime('%Y-%m-%d~%H-%M-%S')}.log",
     filemode="w",
     format="%(asctime)s - [%(levelname)s] %(message)s",
 )
@@ -25,23 +25,18 @@ class FumeGuard(commands.AutoShardedBot):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.log = logging.getLogger("FumeGuard")
+        self.log = logging.getLogger()
+        self.launch_time = datetime.utcnow()
+
+        self.embed_colour = 0xE44C65
 
 
 intents = discord.Intents.default()
 intents.members = True
 
-bot = FumeGuard(command_prefix=commands.when_mentioned_or("/"), intents=intents)
-
-bot.launch_time = datetime.utcnow()
-bot.remove_command("help")
-
-bot.emoji1 = "\U0001F44D"
-bot.emoji2 = "\u2705"
-bot.emoji3 = "\u274C"
-bot.emoji4 = "\U0001F44C"
-
-bot.embed_colour = 0xE44C65
+bot = FumeGuard(
+    command_prefix=commands.when_mentioned_or("/"), intents=intents, help_command=None
+)
 
 
 async def main():

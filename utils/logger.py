@@ -43,6 +43,7 @@ async def log_mod_action(
     member: [discord.Member, discord.User] = None,
     reason: str = None,
     channel=None,
+    color: str = None,
 ):
     channel_id = await get_mod_log_channel(ctx.guild.id)
 
@@ -51,11 +52,8 @@ async def log_mod_action(
 
     case_num = await get_case_id(ctx.guild.id)
 
-    embed = discord.Embed(
-        colour=discord.Colour.green()
-        if action.lower() in ["unban", "unmute", "channel unmute"]
-        else discord.Colour.red()
-    )
+    _color = getattr(discord.Color, color) if color else None
+    embed = discord.Embed(color=_color() or discord.Colour.blurple())
 
     embed.title = f"{action} | Case {case_num}"
 

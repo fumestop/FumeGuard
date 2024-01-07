@@ -1,7 +1,7 @@
+from typing import Union, Optional
+
 import discord
 from discord import app_commands
-
-from typing import Union, Optional
 
 from utils.db import is_premium_user
 
@@ -15,7 +15,7 @@ def parse_cooldown(retry_after: Union[int, float]):
     return minutes, seconds
 
 
-async def dynamic_cooldown_x(
+async def cooldown_level_0(
     ctx: discord.Interaction,
 ) -> Optional[app_commands.Cooldown]:
     if await ctx.client.is_owner(ctx.user):
@@ -28,7 +28,7 @@ async def dynamic_cooldown_x(
         return app_commands.Cooldown(1, 5.0)
 
 
-async def dynamic_cooldown_y(
+async def cooldown_level_1(
     ctx: discord.Interaction,
 ) -> Optional[app_commands.Cooldown]:
     if await ctx.client.is_owner(ctx.user):

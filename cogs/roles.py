@@ -3,7 +3,7 @@ from discord import app_commands
 from discord.ext import commands
 
 from utils.logger import log_role_action
-from utils.tools import dynamic_cooldown_x
+from utils.tools import cooldown_level_0
 
 
 class Roles(commands.Cog):
@@ -21,7 +21,7 @@ class Roles(commands.Cog):
         name="newrole", description="Create a new role in the server."
     )
     @app_commands.check(_roles_perms_check)
-    @app_commands.checks.dynamic_cooldown(dynamic_cooldown_x)
+    @app_commands.checks.dynamic_cooldown(cooldown_level_0)
     @app_commands.guild_only()
     @app_commands.choices(
         color=[
@@ -82,7 +82,7 @@ class Roles(commands.Cog):
 
     @app_commands.command(name="addrole", description="Add a role to a member.")
     @app_commands.check(_roles_perms_check)
-    @app_commands.checks.dynamic_cooldown(dynamic_cooldown_x)
+    @app_commands.checks.dynamic_cooldown(cooldown_level_0)
     @app_commands.guild_only()
     async def _add_role(
         self, ctx: discord.Interaction, member: discord.Member, role: discord.Role
@@ -112,7 +112,7 @@ class Roles(commands.Cog):
 
     @app_commands.command(name="removerole", description="Remove a role from a member.")
     @app_commands.check(_roles_perms_check)
-    @app_commands.checks.dynamic_cooldown(dynamic_cooldown_x)
+    @app_commands.checks.dynamic_cooldown(cooldown_level_0)
     @app_commands.guild_only()
     async def _remove_role(
         self, ctx: discord.Interaction, member: discord.Member, role: discord.Role
@@ -144,7 +144,7 @@ class Roles(commands.Cog):
         name="deleterole", description="Delete an existing role from the server."
     )
     @app_commands.check(_roles_perms_check)
-    @app_commands.checks.dynamic_cooldown(dynamic_cooldown_x)
+    @app_commands.checks.dynamic_cooldown(cooldown_level_0)
     @app_commands.guild_only()
     async def _del_role(self, ctx: discord.Interaction, role: discord.Role):
         # noinspection PyUnresolvedReferences

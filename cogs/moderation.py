@@ -5,7 +5,7 @@ from discord import app_commands
 from discord.ext import commands
 
 from utils.logger import log_mod_action
-from utils.tools import dynamic_cooldown_x
+from utils.tools import cooldown_level_0
 
 
 class Moderation(commands.Cog):
@@ -30,10 +30,10 @@ class Moderation(commands.Cog):
 
     @app_commands.command(name="kick", description="Kick a member from the server.")
     @app_commands.check(_kick_perms_check)
-    @app_commands.checks.dynamic_cooldown(dynamic_cooldown_x)
+    @app_commands.checks.dynamic_cooldown(cooldown_level_0)
     @app_commands.guild_only()
     async def _kick(
-        self, ctx: discord.Interaction, member: discord.Member, *, reason: str = None
+        self, ctx: discord.Interaction, member: discord.Member, reason: str = None
     ):
         # noinspection PyUnresolvedReferences
         await ctx.response.defer(thinking=True)
@@ -70,18 +70,18 @@ class Moderation(commands.Cog):
             moderator=ctx.user,
             action="Member Kicked",
             reason=reason,
+            color="red",
         )
 
     @app_commands.command(name="ban", description="Ban a member from the server")
     @app_commands.check(_ban_perms_check)
-    @app_commands.checks.dynamic_cooldown(dynamic_cooldown_x)
+    @app_commands.checks.dynamic_cooldown(cooldown_level_0)
     @app_commands.guild_only()
     async def _ban(
         self,
         ctx: discord.Interaction,
         member: discord.Member,
         delete_message_days: int = None,
-        *,
         reason: str = None,
     ):
         # noinspection PyUnresolvedReferences
@@ -119,17 +119,16 @@ class Moderation(commands.Cog):
             moderator=ctx.user,
             action="Member Banned",
             reason=reason,
+            color="red",
         )
 
     @app_commands.command(
         name="unban", description="Unban a previously banned member in the server."
     )
     @app_commands.check(_ban_perms_check)
-    @app_commands.checks.dynamic_cooldown(dynamic_cooldown_x)
+    @app_commands.checks.dynamic_cooldown(cooldown_level_0)
     @app_commands.guild_only()
-    async def _unban(
-        self, ctx: discord.Interaction, member: str, *, reason: str = None
-    ):
+    async def _unban(self, ctx: discord.Interaction, member: str, reason: str = None):
         # noinspection PyUnresolvedReferences
         await ctx.response.defer(thinking=True)
 
@@ -149,11 +148,7 @@ class Moderation(commands.Cog):
             user = ban_entry.user
 
             if isinstance(member, str):
-                member_name, member_discriminator = member.split("#")
-                if (user.name, user.discriminator) == (
-                    member_name,
-                    member_discriminator,
-                ):
+                if user.name == member:
                     await ctx.guild.unban(user, reason=reason)
 
                     await ctx.edit_original_response(
@@ -188,6 +183,7 @@ class Moderation(commands.Cog):
                         moderator=ctx.user,
                         action="Member Unbanned",
                         reason=reason,
+                        color="green",
                     )
 
             else:
@@ -198,7 +194,7 @@ class Moderation(commands.Cog):
 
     @app_commands.command(name="mute", description="Timeout a member in the server.")
     @app_commands.check(_moderate_members_perms_check)
-    @app_commands.checks.dynamic_cooldown(dynamic_cooldown_x)
+    @app_commands.checks.dynamic_cooldown(cooldown_level_0)
     @app_commands.guild_only()
     async def _mute(
         self,
@@ -207,7 +203,6 @@ class Moderation(commands.Cog):
         minutes: int = None,
         hours: int = None,
         days: int = None,
-        *,
         reason: str = None,
     ):
         # noinspection PyUnresolvedReferences
@@ -239,16 +234,17 @@ class Moderation(commands.Cog):
             moderator=ctx.user,
             action="Member Muted",
             reason=reason,
+            color="red",
         )
 
     @app_commands.command(
         name="unmute", description="Remove the timeout for a member in the server."
     )
     @app_commands.check(_moderate_members_perms_check)
-    @app_commands.checks.dynamic_cooldown(dynamic_cooldown_x)
+    @app_commands.checks.dynamic_cooldown(cooldown_level_0)
     @app_commands.guild_only()
     async def _unmute(
-        self, ctx: discord.Interaction, member: discord.Member, *, reason: str = None
+        self, ctx: discord.Interaction, member: discord.Member, reason: str = None
     ):
         # noinspection PyUnresolvedReferences
         await ctx.response.defer(thinking=True)
@@ -271,15 +267,16 @@ class Moderation(commands.Cog):
             moderator=ctx.user,
             action="Member Unmuted",
             reason=reason,
+            color="green",
         )
 
     @app_commands.command(
         name="channel_mute", description="Mute a member in the channel."
     )
-    @app_commands.checks.dynamic_cooldown(dynamic_cooldown_x)
+    @app_commands.checks.dynamic_cooldown(cooldown_level_0)
     @app_commands.guild_only()
     async def _channel_mute(
-        self, ctx: discord.Interaction, member: discord.Member, *, reason: str = None
+        self, ctx: discord.Interaction, member: discord.Member, reason: str = None
     ):
         # noinspection PyUnresolvedReferences
         await ctx.response.defer(thinking=True)
@@ -323,15 +320,16 @@ class Moderation(commands.Cog):
             action="Member Channel Muted",
             reason=reason,
             channel=ctx.channel,
+            color="red",
         )
 
     @app_commands.command(
         name="channel_unmute", description="Unmute a member in the channel"
     )
-    @app_commands.checks.dynamic_cooldown(dynamic_cooldown_x)
+    @app_commands.checks.dynamic_cooldown(cooldown_level_0)
     @app_commands.guild_only()
     async def _channel_unmute(
-        self, ctx: discord.Interaction, member: discord.Member, *, reason: str = None
+        self, ctx: discord.Interaction, member: discord.Member, reason: str = None
     ):
         # noinspection PyUnresolvedReferences
         await ctx.response.defer(thinking=True)
@@ -366,14 +364,15 @@ class Moderation(commands.Cog):
             action="Member Channel Unmuted",
             reason=reason,
             channel=ctx.channel,
+            color="green",
         )
 
     @app_commands.command(name="warn", description="Issue a warning to a member.")
     @app_commands.check(_kick_perms_check)
-    @app_commands.checks.dynamic_cooldown(dynamic_cooldown_x)
+    @app_commands.checks.dynamic_cooldown(cooldown_level_0)
     @app_commands.guild_only()
     async def _warn(
-        self, ctx: discord.Interaction, member: discord.Member, *, reason: str = None
+        self, ctx: discord.Interaction, member: discord.Member, reason: str = None
     ):
         # noinspection PyUnresolvedReferences
         await ctx.response.defer(thinking=True)
@@ -401,25 +400,26 @@ class Moderation(commands.Cog):
             moderator=ctx.user,
             action="Member Warned",
             reason=reason,
+            color="red",
         )
 
     @app_commands.command(
         name="clear",
-        description="Clear messages from the channel (maximum 100). Defaults to 5.",
+        description="Clear messages from the channel (maximum 100)",
     )
     @app_commands.check(_clear_perms_check)
-    @app_commands.checks.dynamic_cooldown(dynamic_cooldown_x)
+    @app_commands.checks.dynamic_cooldown(cooldown_level_0)
     @app_commands.guild_only()
-    async def _clear(self, ctx: discord.Interaction, amount: int = None):
+    async def _clear(self, ctx: discord.Interaction, amount: int):
         # noinspection PyUnresolvedReferences
         await ctx.response.defer(thinking=True)
-
-        amount = 5 if not amount else amount
 
         if amount in list(range(1, 101)):
             try:
                 await ctx.delete_original_response()
-                await ctx.channel.purge(limit=amount)
+                await ctx.channel.purge(
+                    limit=amount, reason=f"{amount} messages cleared by {ctx.user}"
+                )
 
             except (discord.Forbidden, discord.errors.Forbidden):
                 return await ctx.edit_original_response(
@@ -435,6 +435,7 @@ class Moderation(commands.Cog):
                 moderator=ctx.user,
                 action="Messages Cleared",
                 reason=f"{amount} messages cleared",
+                color="red",
             )
 
         else:
@@ -445,15 +446,14 @@ class Moderation(commands.Cog):
     @app_commands.command(
         name="announce", description="Make an announcement in a channel."
     )
-    @app_commands.checks.dynamic_cooldown(dynamic_cooldown_x)
+    @app_commands.checks.dynamic_cooldown(cooldown_level_0)
     @app_commands.guild_only()
     async def _announce(
         self,
         ctx: discord.Interaction,
         channel: discord.TextChannel,
         mention: str,
-        *,
-        msg: str,
+        message: str,
     ):
         # noinspection PyUnresolvedReferences
         await ctx.response.defer(thinking=True)
@@ -466,15 +466,15 @@ class Moderation(commands.Cog):
 
         if channel.permissions_for(ctx.guild.me).send_messages:
             if mention == "everyone":
-                msg = "@everyone " + msg
+                message = "@everyone " + message
 
             elif mention == "here":
-                msg = "@here " + msg
+                message = "@here " + message
 
             else:
-                msg = mention + " " + msg
+                message = mention + " " + message
 
-            await channel.send(msg)
+            await channel.send(message)
             await ctx.delete_original_response()
 
         else:

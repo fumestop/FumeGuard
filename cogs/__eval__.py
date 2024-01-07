@@ -38,7 +38,6 @@ class EvalModal(ui.Modal, title="Evaluate Code"):
             "discord": discord,
             "ctx": ctx,
             "bot": self.bot,
-            "self.bot": self.bot,
             "channel": ctx.channel,
             "user": ctx.user,
             "guild": ctx.guild,
@@ -48,6 +47,8 @@ class EvalModal(ui.Modal, title="Evaluate Code"):
         }
 
         def cleanup_code(content):
+            content.replace("self.bot", "bot")
+
             if content.startswith("```") and content.endswith("```"):
                 return "\n".join(content.split("\n")[1:-1])
 
@@ -145,7 +146,7 @@ class EvalModal(ui.Modal, title="Evaluate Code"):
 
 
 class ExecModal(ui.Modal, title="Execute Shell Commands"):
-    cmds = ui.TextInput(
+    _commands = ui.TextInput(
         label="Code",
         placeholder="The command(s) to execute...",
         style=discord.TextStyle.paragraph,
@@ -161,15 +162,15 @@ class ExecModal(ui.Modal, title="Execute Shell Commands"):
         # noinspection PyUnresolvedReferences
         await ctx.response.defer(thinking=True)
 
-        proc = subprocess.run(
-            self.cmds.value,
+        process = subprocess.run(
+            self._commands.value,
             shell=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             timeout=300,
         )
 
-        stdout_value = proc.stdout.decode("utf-8") + proc.stderr.decode("utf-8")
+        stdout_value = process.stdout.decode("utf-8") + process.stderr.decode("utf-8")
         stdout_value = "\n".join(stdout_value.split("\n")[-25:])
 
         await self.interaction.edit_original_response(

@@ -1,5 +1,6 @@
 import json
 import asyncio
+from datetime import datetime
 
 import aiomysql
 
@@ -314,3 +315,127 @@ async def update_welcome_message(guild_id: int, message: str):
 
     pool.close()
     await pool.wait_closed()
+
+
+async def set_afk(user_id: int, guild_id: int, reason: str):
+    pool = await aiomysql.create_pool(
+        host=db_host,
+        port=db_port,
+        user=db_user,
+        password=db_password,
+        db=db_name,
+        autocommit=True,
+        loop=asyncio.get_event_loop(),
+    )
+
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cur:
+            # noinspection SqlNoDataSourceInspection,SqlResolve
+            await cur.execute(
+                "insert into afk (USER_ID, GUILD_ID, START, REASON) values (%s, %s, %s, %s);",
+                (user_id, guild_id, datetime.now(), reason),
+            )
+
+    pool.close()
+    await pool.wait_closed()
+
+
+async def is_afk(user_id: int, guild_id: int):
+    pool = await aiomysql.create_pool(
+        host=db_host,
+        port=db_port,
+        user=db_user,
+        password=db_password,
+        db=db_name,
+        autocommit=True,
+        loop=asyncio.get_event_loop(),
+    )
+
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cur:
+            # noinspection SqlNoDataSourceInspection,SqlResolve
+            await cur.execute(
+                "select USER_ID from afk where USER_ID = %s and GUILD_ID = %s;",
+                (user_id, guild_id),
+            )
+            res = await cur.fetchone()
+
+    pool.close()
+    await pool.wait_closed()
+
+    return True if res else False
+
+
+async def get_afk_details(user_id: int, guild_id: int):
+    pool = await aiomysql.create_pool(
+        host=db_host,
+        port=db_port,
+        user=db_user,
+        password=db_password,
+        db=db_name,
+        autocommit=True,
+        loop=asyncio.get_event_loop(),
+    )
+
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cur:
+            # noinspection SqlNoDataSourceInspection,SqlResolve
+            await cur.execute(
+                "select * from afk where USER_ID = %s and GUILD_ID = %s;",
+                (user_id, guild_id),
+            )
+            res = await cur.fetchone()
+
+    pool.close()
+    await pool.wait_closed()
+
+    return {"user_id": res[0], "guild_id": res[1], "start": res[2], "reason": res[3]}
+
+
+async def get_afk_members(guild_id: int):
+    pool = await aiomysql.create_pool(
+        host=db_host,
+        port=db_port,
+        user=db_user,
+        password=db_password,
+        db=db_name,
+        autocommit=True,
+        loop=asyncio.get_event_loop(),
+    )
+
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cur:
+            # noinspection SqlNoDataSourceInspection,SqlResolve
+            await cur.execute("select USER_ID from afk where GUILD_ID = %s;", (guild_id,))
+            res = await cur.fetchall()
+
+    pool.close()
+    await pool.wait_closed()
+
+    return res
+
+
+async def remove_afk(user_id: int, guild_id):
+    pool = await aiomysql.create_pool(
+        host=db_host,
+        port=db_port,
+        user=db_user,
+        password=db_password,
+        db=db_name,
+        autocommit=True,
+        loop=asyncio.get_event_loop(),
+    )
+
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cur:
+            # noinspection SqlNoDataSourceInspection,SqlResolve
+            await cur.execute(
+                "delete from afk where USER_ID = %s and GUILD_ID = %s;",
+                (user_id, guild_id),
+            )
+            res = await cur.fetchone()
+
+    pool.close()
+    await pool.wait_closed()
+
+    return res

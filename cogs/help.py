@@ -2,7 +2,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from utils.tools import dynamic_cooldown_x
+from utils.tools import cooldown_level_0
 
 
 class Help(commands.Cog):
@@ -12,7 +12,7 @@ class Help(commands.Cog):
     @app_commands.command(
         name="help", description="A list of all the commands provided by FumeGuard."
     )
-    @app_commands.checks.dynamic_cooldown(dynamic_cooldown_x)
+    @app_commands.checks.dynamic_cooldown(cooldown_level_0)
     async def _help(self, ctx: discord.Interaction):
         # noinspection PyUnresolvedReferences
         await ctx.response.defer(thinking=True)
@@ -26,6 +26,12 @@ class Help(commands.Cog):
         embed.add_field(
             name="General",
             value=f"`ping`, `web`, `invite`, `vote`, `community`",
+            inline=False,
+        )
+
+        embed.add_field(
+            name="Afk",
+            value=f"`afk`, `afklist`",
             inline=False,
         )
 

@@ -5,7 +5,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from utils.tools import dynamic_cooldown_x
+from utils.tools import cooldown_level_0
 
 
 class General(commands.Cog):
@@ -13,7 +13,7 @@ class General(commands.Cog):
         self.bot = bot
 
     @app_commands.command(name="ping", description="Returns the API and bot latency.")
-    @app_commands.checks.dynamic_cooldown(dynamic_cooldown_x)
+    @app_commands.checks.dynamic_cooldown(cooldown_level_0)
     async def _ping(self, ctx: discord.Interaction):
         # noinspection PyUnresolvedReferences
         await ctx.response.defer(thinking=True)
@@ -39,7 +39,7 @@ class General(commands.Cog):
     @app_commands.command(
         name="web", description="Shows web resources about FumeGuard."
     )
-    @app_commands.checks.dynamic_cooldown(dynamic_cooldown_x)
+    @app_commands.checks.dynamic_cooldown(cooldown_level_0)
     async def _web(self, ctx: discord.Interaction):
         # noinspection PyUnresolvedReferences
         await ctx.response.defer(thinking=True)
@@ -69,7 +69,7 @@ class General(commands.Cog):
     @app_commands.command(
         name="invite", description="Shows the link to invite FumeGuard to your server."
     )
-    @app_commands.checks.dynamic_cooldown(dynamic_cooldown_x)
+    @app_commands.checks.dynamic_cooldown(cooldown_level_0)
     async def _invite(self, ctx: discord.Interaction):
         # noinspection PyUnresolvedReferences
         await ctx.response.defer(thinking=True)
@@ -89,7 +89,7 @@ class General(commands.Cog):
     @app_commands.command(
         name="vote", description="Shows the URL to vote for FumeGuard on Top.GG!"
     )
-    @app_commands.checks.dynamic_cooldown(dynamic_cooldown_x)
+    @app_commands.checks.dynamic_cooldown(cooldown_level_0)
     async def _vote(self, ctx: discord.Interaction):
         # noinspection PyUnresolvedReferences
         await ctx.response.defer(thinking=True)
@@ -107,7 +107,7 @@ class General(commands.Cog):
         name="community",
         description="Sends the invite to the official community server.",
     )
-    @app_commands.checks.dynamic_cooldown(dynamic_cooldown_x)
+    @app_commands.checks.dynamic_cooldown(cooldown_level_0)
     async def _community(self, ctx: discord.Interaction):
         # noinspection PyUnresolvedReferences
         await ctx.response.defer(thinking=True)
