@@ -25,9 +25,9 @@ async def guild_exists(guild_id: int):
 
     async with pool.acquire() as conn:
         async with conn.cursor() as cur:
-            # noinspection SqlNoDataSourceInspection
+            # noinspection SqlResolve,SqlNoDataSourceInspection
             await cur.execute(
-                f"select GUILD_ID from guilds where GUILD_ID = {guild_id};"
+                "select GUILD_ID from guilds where GUILD_ID = %s;", (guild_id,)
             )
 
             res = await cur.fetchone()
@@ -54,8 +54,8 @@ async def add_guild(guild_id: int):
 
     async with pool.acquire() as conn:
         async with conn.cursor() as cur:
-            # noinspection SqlNoDataSourceInspection
-            await cur.execute(f"insert into guilds values ({guild_id});")
+            # noinspection SqlResolve,SqlNoDataSourceInspection
+            await cur.execute("insert into guilds values (%s);", (guild_id,))
 
     pool.close()
     await pool.wait_closed()
@@ -74,8 +74,10 @@ async def is_premium_user(user_id: int):
 
     async with pool.acquire() as conn:
         async with conn.cursor() as cur:
-            # noinspection SqlNoDataSourceInspection
-            await cur.execute(f"select PREMIUM from users where USER_ID = {user_id};")
+            # noinspection SqlResolve,SqlNoDataSourceInspection
+            await cur.execute(
+                "select PREMIUM from users where USER_ID = %s;", (user_id,)
+            )
 
             res = await cur.fetchone()
 
@@ -101,8 +103,10 @@ async def is_premium_guild(user_id: int):
 
     async with pool.acquire() as conn:
         async with conn.cursor() as cur:
-            # noinspection SqlNoDataSourceInspection
-            await cur.execute(f"select PREMIUM from guilds where GUILD_ID = {user_id};")
+            # noinspection SqlResolve,SqlNoDataSourceInspection
+            await cur.execute(
+                "select PREMIUM from guilds where GUILD_ID = %s;", (user_id,)
+            )
 
             res = await cur.fetchone()
 
@@ -128,9 +132,9 @@ async def get_mod_log_channel(guild_id: int):
 
     async with pool.acquire() as conn:
         async with conn.cursor() as cur:
-            # noinspection SqlNoDataSourceInspection
+            # noinspection SqlResolve,SqlNoDataSourceInspection
             await cur.execute(
-                f"select MOD_LOG_CHANNEL from guilds where GUILD_ID={guild_id};"
+                "select MOD_LOG_CHANNEL from guilds where GUILD_ID = %s;", (guild_id,)
             )
 
             res = await cur.fetchone()
@@ -154,9 +158,10 @@ async def update_mod_log_channel(guild_id: int, channel_id: int):
 
     async with pool.acquire() as conn:
         async with conn.cursor() as cur:
-            # noinspection SqlNoDataSourceInspection
+            # noinspection SqlResolve,SqlNoDataSourceInspection
             await cur.execute(
-                f"update guilds set MOD_LOG_CHANNEL = {channel_id} where GUILD_ID={guild_id};"
+                "update guilds set MOD_LOG_CHANNEL = %s where GUILD_ID = %s;",
+                (channel_id, guild_id),
             )
 
     pool.close()
@@ -176,9 +181,10 @@ async def get_member_log_channel(guild_id: int):
 
     async with pool.acquire() as conn:
         async with conn.cursor() as cur:
-            # noinspection SqlNoDataSourceInspection
+            # noinspection SqlResolve,SqlNoDataSourceInspection
             await cur.execute(
-                f"select MEMBER_LOG_CHANNEL from guilds where GUILD_ID={guild_id};"
+                "select MEMBER_LOG_CHANNEL from guilds where GUILD_ID = %s;",
+                (guild_id,),
             )
 
             res = await cur.fetchone()
@@ -202,9 +208,10 @@ async def update_member_log_channel(guild_id: int, channel_id: int):
 
     async with pool.acquire() as conn:
         async with conn.cursor() as cur:
-            # noinspection SqlNoDataSourceInspection
+            # noinspection SqlResolve,SqlNoDataSourceInspection
             await cur.execute(
-                f"update guilds set MEMBER_LOG_CHANNEL = {channel_id} where GUILD_ID={guild_id};"
+                "update guilds set MEMBER_LOG_CHANNEL = %s where GUILD_ID = %s;",
+                (channel_id, guild_id),
             )
 
     pool.close()
@@ -224,8 +231,10 @@ async def get_case_id(guild_id: int):
 
     async with pool.acquire() as conn:
         async with conn.cursor() as cur:
-            # noinspection SqlNoDataSourceInspection
-            await cur.execute(f"select CASE_ID from guilds where GUILD_ID={guild_id};")
+            # noinspection SqlResolve,SqlNoDataSourceInspection
+            await cur.execute(
+                "select CASE_ID from guilds where GUILD_ID = %s;", (guild_id,)
+            )
 
             res = await cur.fetchone()
 
@@ -248,9 +257,10 @@ async def update_case_id(guild_id: int):
 
     async with pool.acquire() as conn:
         async with conn.cursor() as cur:
-            # noinspection SqlNoDataSourceInspection
+            # noinspection SqlResolve,SqlNoDataSourceInspection
             await cur.execute(
-                f"update guilds set CASE_ID = CASE_ID + 1 where GUILD_ID={guild_id};"
+                "update guilds set CASE_ID = CASE_ID + 1 where GUILD_ID = %s;",
+                (guild_id,),
             )
 
     pool.close()
@@ -270,9 +280,9 @@ async def get_welcome_message(guild_id: int):
 
     async with pool.acquire() as conn:
         async with conn.cursor() as cur:
-            # noinspection SqlNoDataSourceInspection
+            # noinspection SqlResolve,SqlNoDataSourceInspection
             await cur.execute(
-                f"select WELCOME_MSG from guilds where GUILD_ID={guild_id};"
+                "select WELCOME_MESSAGE from guilds where GUILD_ID = %s;", (guild_id,)
             )
 
             res = await cur.fetchone()
@@ -283,7 +293,7 @@ async def get_welcome_message(guild_id: int):
     return None if not res else res[0]
 
 
-async def update_welcome_message(guild_id: int, welcome_msg: str):
+async def update_welcome_message(guild_id: int, message: str):
     pool = await aiomysql.create_pool(
         host=db_host,
         port=db_port,
@@ -296,9 +306,10 @@ async def update_welcome_message(guild_id: int, welcome_msg: str):
 
     async with pool.acquire() as conn:
         async with conn.cursor() as cur:
-            # noinspection SqlNoDataSourceInspection
+            # noinspection SqlNoDataSourceInspection,SqlResolve
             await cur.execute(
-                f"update guilds set WELCOME_MSG = {welcome_msg} where GUILD_ID={guild_id};"
+                "update guilds set WELCOME_MESSAGE = %s where GUILD_ID = %s;",
+                (message, guild_id),
             )
 
     pool.close()

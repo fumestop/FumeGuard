@@ -9,6 +9,8 @@ from utils.db import (
     update_mod_log_channel,
     get_member_log_channel,
     update_member_log_channel,
+    get_welcome_message,
+    update_welcome_message,
 )
 
 
@@ -35,7 +37,6 @@ class IPC(commands.Cog):
 
     async def cog_unload(self):
         await self.bot.ipc.stop()
-        # self.bot.ipc = None
 
     # noinspection PyUnusedLocal
     @Server.route(name="get_guild_count")
@@ -50,8 +51,8 @@ class IPC(commands.Cog):
     # noinspection PyUnusedLocal
     @Server.route(name="get_command_count")
     async def _get_command_count(self, data: ClientPayload):
-        cmds = await self.bot.tree.fetch_commands()
-        return {"count": len(cmds)}
+        _commands = await self.bot.tree.fetch_commands()
+        return {"count": len(_commands)}
 
     @Server.route(name="get_channel_list")
     async def _get_channel_list(self, data: ClientPayload):
@@ -60,14 +61,14 @@ class IPC(commands.Cog):
         if not guild:
             return {"error": {"code": 404, "message": "Guild not found."}}
 
-        channels = list()
+        channels = dict()
 
         for channel in guild.text_channels:
             if not channel.permissions_for(guild.me).send_messages:
                 continue
 
             else:
-                channels.append({"id": channel.id, "name": channel.name})
+                channels[channel.id] = channel.name
 
         return {"channels": channels}
 
@@ -78,7 +79,15 @@ class IPC(commands.Cog):
         if not user:
             return {"error": {"code": 404, "message": "User not found."}}
 
-        return {"guilds": [guild.id for guild in user.mutual_guilds]}
+        guilds = dict()
+
+        for guild in user.mutual_guilds:
+            member = await guild.fetch_member(user.id)
+
+            if member.guild_permissions.manage_guild:
+                guilds[guild.id] = guild.name
+
+        return {"guilds": guilds}
 
     @Server.route(name="get_mod_log_channel")
     async def _get_mod_log_channel(self, data: ClientPayload):
@@ -94,7 +103,7 @@ class IPC(commands.Cog):
             return {"id": channel.id, "name": channel.name}
 
         else:
-            return {"error": {"code": 404, "message": "Moderation logging disabled."}}
+            return {"id": 0, "name": "LOGGING DISABLED"}
 
     @Server.route(name="update_mod_log_channel")
     async def _update_mod_log_channel(self, data: ClientPayload):
@@ -121,7 +130,7 @@ class IPC(commands.Cog):
             return {"id": channel.id, "name": channel.name}
 
         else:
-            return {"error": {"code": 404, "message": "Member logging disabled."}}
+            return {"id": 0, "name": "LOGGING DISABLED"}
 
     @Server.route(name="update_member_log_channel")
     async def _update_member_log_channel(self, data: ClientPayload):
@@ -131,6 +140,28 @@ class IPC(commands.Cog):
             return {"error": {"code": 404, "message": "Guild not found."}}
 
         await update_member_log_channel(guild.id, data.channel_id)
+
+        return {"status": 200, "message": "Success"}
+
+    @Server.route(name="get_welcome_message")
+    async def _get_welcome_message(self, data: ClientPayload):
+        guild = self.bot.get_guild(data.guild_id)
+
+        if not guild:
+            return {"error": {"code": 404, "message": "Guild not found."}}
+
+        message = await get_welcome_message(guild.id)
+
+        return {"message": message}
+
+    @Server.route(name="update_welcome_message")
+    async def _update_welcome_message(self, data: ClientPayload):
+        guild = self.bot.get_guild(data.guild_id)
+
+        if not guild:
+            return {"error": {"code": 404, "message": "Guild not found."}}
+
+        await update_welcome_message(guild.id, data.message)
 
         return {"status": 200, "message": "Success"}
 
