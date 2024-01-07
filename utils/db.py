@@ -55,7 +55,7 @@ async def add_guild(guild_id: int):
     async with pool.acquire() as conn:
         async with conn.cursor() as cur:
             # noinspection SqlResolve,SqlNoDataSourceInspection
-            await cur.execute("insert into guilds values (%s);", (guild_id,))
+            await cur.execute("insert into guilds (GUILD_ID) values (%s);", (guild_id,))
 
     pool.close()
     await pool.wait_closed()
