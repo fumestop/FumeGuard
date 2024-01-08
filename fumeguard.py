@@ -6,7 +6,7 @@ from datetime import datetime
 import discord
 from discord.ext import commands
 
-from utils.core import load_cogs
+from utils.cogs import load_cogs
 
 with open("config.json") as json_file:
     data = json.load(json_file)
