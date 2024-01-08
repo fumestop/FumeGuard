@@ -12,6 +12,7 @@ with open("config.json") as json_file:
     data = json.load(json_file)
 
     token = data["bot_token"]
+    embed_color = data["embed_color"]
 
 logging.basicConfig(
     level=logging.INFO,
@@ -28,7 +29,7 @@ class FumeGuard(commands.AutoShardedBot):
         self.log = logging.getLogger()
         self.launch_time = datetime.utcnow()
 
-        self.embed_colour = 0xE44C65
+        self.embed_colour = int(hex(embed_color), 16)
 
 
 intents = discord.Intents.default()
