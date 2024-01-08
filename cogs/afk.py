@@ -52,7 +52,7 @@ class Afk(commands.Cog):
 
             try:
                 await ctx.user.edit(
-                    nick=f"[AFK] {ctx.user.display_name}", reason="AFK set."
+                    nick=f"[AFK] {ctx.user.display_name}", reason="AFK status set."
                 )
 
             except (discord.Forbidden, discord.errors.Forbidden):
@@ -76,7 +76,7 @@ class Afk(commands.Cog):
             if ctx.user.display_name.startswith("[AFK]"):
                 try:
                     await ctx.user.edit(
-                        nick=ctx.user.display_name[5:], reason="AFK removed."
+                        nick=ctx.user.display_name[5:], reason="AFK status removed."
                     )
 
                 except (discord.Forbidden, discord.errors.Forbidden):
