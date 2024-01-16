@@ -67,7 +67,7 @@ class General(commands.Cog):
         )
 
     @app_commands.command(
-        name="invite", description="Shows the link to invite FumeGuard to your server."
+        name="invite", description="Shows the invite link for FumeGuard."
     )
     @app_commands.checks.dynamic_cooldown(cooldown_level_0)
     async def _invite(self, ctx: discord.Interaction):
@@ -86,9 +86,7 @@ class General(commands.Cog):
             content="Thank you for choosing me!", view=view
         )
 
-    @app_commands.command(
-        name="vote", description="Shows the URL to vote for FumeGuard on Top.GG!"
-    )
+    @app_commands.command(name="vote", description="Vote for FumeGuard on Top.GG!")
     @app_commands.checks.dynamic_cooldown(cooldown_level_0)
     async def _vote(self, ctx: discord.Interaction):
         # noinspection PyUnresolvedReferences
@@ -101,6 +99,23 @@ class General(commands.Cog):
 
         await ctx.edit_original_response(
             content="Thank you for choosing to vote for me!", view=view
+        )
+
+    @app_commands.command(
+        name="review", description="Leave a review for FumeGuard on Top.GG!"
+    )
+    @app_commands.checks.dynamic_cooldown(cooldown_level_0)
+    async def _review(self, ctx: discord.Interaction):
+        # noinspection PyUnresolvedReferences
+        await ctx.response.defer(thinking=True)
+
+        view = discord.ui.View()
+        view.add_item(
+            discord.ui.Button(label="Review", url="https://fumes.top/fumeguard/review")
+        )
+
+        await ctx.edit_original_response(
+            content="Thank you for reviewing me!", view=view
         )
 
     @app_commands.command(

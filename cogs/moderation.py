@@ -300,7 +300,7 @@ class Moderation(commands.Cog):
             )
 
         try:
-            await ctx.message.channel.set_permissions(
+            await ctx.channel.set_permissions(
                 member, read_messages=True, send_messages=False
             )
 
@@ -346,7 +346,7 @@ class Moderation(commands.Cog):
             )
 
         try:
-            await ctx.message.channel.set_permissions(member, overwrite=None)
+            await ctx.channel.set_permissions(member, overwrite=None)
 
         except (discord.Forbidden, discord.errors.Forbidden):
             return await ctx.edit_original_response(
