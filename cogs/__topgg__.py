@@ -16,12 +16,6 @@ class TopGG(commands.Cog):
         if not hasattr(bot, "topggpy"):
             bot.topggpy = topgg.DBLClient(bot=self.bot, token=self.topgg_token)
 
-    async def cog_load(self):
-        self._update_stats.start()
-
-    async def cog_unload(self):
-        self._update_stats.stop()
-
     @tasks.loop(minutes=30)
     async def _update_stats(self):
         try:
@@ -33,6 +27,11 @@ class TopGG(commands.Cog):
             self.bot.log.error(
                 f"Failed to post server count\n{e.__class__.__name__}: {e}"
             )
+
+    @commands.Cog.listener()
+    async def on_ready(self):
+        self._update_stats.start()
+        self.bot.log.info("Top.gg is ready")
 
 
 async def setup(bot):
