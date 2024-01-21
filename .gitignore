@@ -161,4 +161,6 @@ cython_debug/
 
 # FumeGuard
 logs/*.log
+logs/errors/*.log
+
 config.json

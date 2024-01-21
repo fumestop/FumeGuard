@@ -414,7 +414,7 @@ class Moderation(commands.Cog):
         # noinspection PyUnresolvedReferences
         await ctx.response.defer(thinking=True)
 
-        if amount in list(range(1, 101)):
+        if 1 <= amount <= 100:
             try:
                 await ctx.delete_original_response()
                 await ctx.channel.purge(
@@ -433,8 +433,9 @@ class Moderation(commands.Cog):
             await log_mod_action(
                 ctx=ctx,
                 moderator=ctx.user,
+                channel=ctx.channel,
                 action="Messages Cleared",
-                reason=f"{amount} messages cleared",
+                message_count=amount,
                 color="red",
             )
 

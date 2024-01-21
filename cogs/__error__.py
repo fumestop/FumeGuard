@@ -35,8 +35,11 @@ class Error(commands.Cog):
             else:
                 embed = discord.Embed(colour=self.bot.embed_colour)
 
-                embed.title = "Unhandled Exception"
-                embed.description = f"```css\n{str(error)}```\nThe error has been reported to the community server. "
+                embed.title = "Oops! Something went wrong."
+                embed.description = (
+                    f"```css\n{error.__str__()}```"
+                    f"\nThe error has been reported to the community server. "
+                )
 
                 # noinspection PyUnresolvedReferences
                 if ctx.response.is_done():
@@ -58,7 +61,7 @@ class Error(commands.Cog):
                 )
 
                 file_name = (
-                    f"logs/error-{ctx.guild.id}-{ctx.command.name}-"
+                    f"logs/errors/{ctx.guild.id}-{ctx.command.name}-"
                     f"{''.join(random.choices(string.ascii_letters + string.digits, k=10))}.log"
                 )
 

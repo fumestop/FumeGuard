@@ -41,8 +41,9 @@ async def log_mod_action(
     moderator: discord.Member,
     action: str,
     member: [discord.Member, discord.User] = None,
-    reason: str = None,
     channel=None,
+    reason: str = None,
+    message_count: int = None,
     color: str = None,
 ):
     channel_id = await get_mod_log_channel(ctx.guild.id)
@@ -72,6 +73,9 @@ async def log_mod_action(
 
     if reason:
         embed.add_field(name="Reason", value=reason, inline=False)
+
+    if message_count:
+        embed.add_field(name="Message Count", value=message_count, inline=False)
 
     await update_case_id(ctx.guild.id)
 

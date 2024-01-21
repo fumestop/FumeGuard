@@ -390,7 +390,9 @@ async def get_afk_members(guild_id: int):
 
     async with pool.acquire() as conn:
         async with conn.cursor() as cur:
-            await cur.execute("select USER_ID from afk where GUILD_ID = %s;", (guild_id,))
+            await cur.execute(
+                "select USER_ID from afk where GUILD_ID = %s;", (guild_id,)
+            )
             res = await cur.fetchall()
 
     pool.close()

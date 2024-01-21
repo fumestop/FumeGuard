@@ -23,6 +23,7 @@ class TopGG(commands.Cog):
                 guild_count=len(self.bot.guilds), shard_count=len(self.bot.shards)
             )
             self.bot.log.info(f"Posted server count ({self.bot.topggpy.guild_count})")
+
         except Exception as e:
             self.bot.log.error(
                 f"Failed to post server count\n{e.__class__.__name__}: {e}"
@@ -31,7 +32,7 @@ class TopGG(commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self):
         self._update_stats.start()
-        self.bot.log.info("Top.gg is ready")
+        self.bot.log.info("Top.gg webhook is ready")
 
 
 async def setup(bot):
