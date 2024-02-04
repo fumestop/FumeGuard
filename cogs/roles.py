@@ -1,28 +1,34 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING, Optional
+
 import discord
 from discord import app_commands
 from discord.ext import commands
 
 from utils.logger import log_role_action
-from utils.tools import cooldown_level_0
+from utils.cd import cooldown_level_0
+from utils.modals import RoleColorModal
+
+if TYPE_CHECKING:
+    from bot import FumeGuard
 
 
-class Roles(commands.Cog):
-    def __init__(self, bot):
-        self.bot = bot
+@app_commands.guild_only()
+class Roles(
+    commands.GroupCog,
+    group_name="role",
+    group_description="Various commands to manage roles in the server.",
+):
+    def __init__(self, bot: FumeGuard):
+        self.bot: FumeGuard = bot
 
     @staticmethod
     async def _roles_perms_check(ctx: discord.Interaction):
-        return (
-            ctx.user.guild_permissions.manage_roles
-            and ctx.guild.me.guild_permissions.manage_roles
-        )
+        return ctx.user.guild_permissions.manage_roles
 
-    @app_commands.command(
-        name="newrole", description="Create a new role in the server."
-    )
+    @app_commands.command(name="create")
     @app_commands.check(_roles_perms_check)
     @app_commands.checks.dynamic_cooldown(cooldown_level_0)
-    @app_commands.guild_only()
     @app_commands.choices(
         color=[
             app_commands.Choice(name="Default", value="default"),
@@ -49,114 +55,239 @@ class Roles(commands.Cog):
             app_commands.Choice(name="Greyple", value="greyple"),
         ]
     )
-    async def _new_role(
-        self, ctx: discord.Interaction, name: str, color: app_commands.Choice[str]
+    async def _role_create(
+        self,
+        ctx: discord.Interaction,
+        name: str,
+        color: app_commands.Choice[str],
+        hoist: Optional[bool] = False,
+        mentionable: Optional[bool] = False,
+        reason: Optional[str] = None,
     ):
-        # noinspection PyUnresolvedReferences
-        await ctx.response.defer(thinking=True)
+        """Create a new role in the server.
 
+        Parameters
+        ----------
+        name : str
+            The name of the role.
+        color : app_commands.Choice[str]
+            The color of the role. Can be either a default color or a custom hex code.
+        hoist : Optional[bool]
+            Whether to display the role separately from other members.
+        mentionable : Optional[bool]
+            Whether the role should be mentionable.
+        reason : Optional[str]
+            The reason for creating the role.
+
+        """
         if not ctx.guild.me.guild_permissions.manage_roles:
             return await ctx.edit_original_response(
-                content="I do not have the permission to create roles."
+                content="I do not have the **Manage Roles** permission in this server."
             )
 
-        if color == "custom":
+        if color.value == "custom":
+            modal = RoleColorModal()
+            modal.ctx = ctx
+
+            # noinspection PyUnresolvedReferences
+            await ctx.response.send_modal(modal)
+            await modal.wait()
+
             try:
-                color = discord.Colour.from_str(color.value)
+                color = discord.Colour.from_str(modal.color.value)
 
             except ValueError:
-                return await ctx.edit_original_response(
-                    content="Invalid hex color code."
+                return await modal.interaction.edit_original_response(
+                    content="Invalid hexadecimal color code."
                 )
 
         else:
             _color = getattr(discord.Color, color.value)
             color = _color()
 
-        role = await ctx.guild.create_role(name=name, color=color)
-
-        await ctx.edit_original_response(content="The role has been created.")
-        await log_role_action(
-            ctx=ctx, role=role, moderator=ctx.user, action="Role Created"
+        role = await ctx.guild.create_role(
+            name=name,
+            color=color,
+            hoist=hoist,
+            mentionable=mentionable,
+            reason=reason,
         )
 
-    @app_commands.command(name="addrole", description="Add a role to a member.")
+        # noinspection PyUnresolvedReferences
+        if ctx.response.is_done():
+            # noinspection PyUnboundLocalVariable
+            await modal.interaction.edit_original_response(
+                content="The role has been created."
+            )
+
+        else:
+            # noinspection PyUnresolvedReferences
+            await ctx.response.send_message(content="The role has been created.")
+
+        await log_role_action(
+            ctx=ctx,
+            role=role,
+            moderator=ctx.user,
+            action="Role Created",
+            reason=reason,
+        )
+
+    @app_commands.command(name="add")
     @app_commands.check(_roles_perms_check)
     @app_commands.checks.dynamic_cooldown(cooldown_level_0)
-    @app_commands.guild_only()
-    async def _add_role(
-        self, ctx: discord.Interaction, member: discord.Member, role: discord.Role
+    async def _role_add(
+        self,
+        ctx: discord.Interaction,
+        member: discord.Member,
+        role: discord.Role,
+        reason: Optional[str] = None,
     ):
+        """Add a role to a member.
+
+        Parameters
+        ----------
+        member : discord.Member
+            The member to add the role to.
+        role : discord.Role
+            The role to add to the member.
+        reason : Optional[str]
+            The reason for adding the role.
+
+        """
         # noinspection PyUnresolvedReferences
         await ctx.response.defer(thinking=True)
 
         if not ctx.guild.me.guild_permissions.manage_roles:
             return await ctx.edit_original_response(
-                content="I do not have the permission to create roles."
+                content="I do not have the **Manage Roles** permission in this server."
+            )
+
+        if role in member.roles:
+            return await ctx.edit_original_response(
+                content=f"{member.mention} already has the role {role.mention}.",
+                allowed_mentions=discord.AllowedMentions.none(),
             )
 
         try:
-            await member.add_roles(role)
+            await member.add_roles(role, reason=reason)
 
         except (discord.errors.Forbidden, discord.Forbidden):
             return await ctx.edit_original_response(
-                content=f"I do not have permission to add that role to **{member}**."
+                content=f"I do not have permission to add {role.mention} to {member.mention}.",
+                allowed_mentions=discord.AllowedMentions.none(),
             )
 
         await ctx.edit_original_response(
-            content=f"The role **{role}** has been added to **{member}**."
+            content=f"{role.mention} has been added to {member.mention}.",
+            allowed_mentions=discord.AllowedMentions.none(),
         )
         await log_role_action(
-            ctx=ctx, role=role, moderator=ctx.user, action="Role Added", member=member
+            ctx=ctx,
+            role=role,
+            moderator=ctx.user,
+            action="Role Added",
+            member=member,
+            reason=reason,
         )
 
-    @app_commands.command(name="removerole", description="Remove a role from a member.")
+    @app_commands.command(name="remove")
     @app_commands.check(_roles_perms_check)
     @app_commands.checks.dynamic_cooldown(cooldown_level_0)
-    @app_commands.guild_only()
-    async def _remove_role(
-        self, ctx: discord.Interaction, member: discord.Member, role: discord.Role
+    async def _role_remove(
+        self,
+        ctx: discord.Interaction,
+        member: discord.Member,
+        role: discord.Role,
+        reason: Optional[str] = None,
     ):
+        """Remove a role from a member.
+
+        Parameters
+        ----------
+        member : discord.Member
+            The member to remove the role from.
+        role : discord.Role
+            The role to remove from the member.
+        reason : Optional[str]
+            The reason for removing the role.
+
+        """
         # noinspection PyUnresolvedReferences
         await ctx.response.defer(thinking=True)
 
         if not ctx.guild.me.guild_permissions.manage_roles:
             return await ctx.edit_original_response(
-                content="I do not have the permission to create roles."
+                content="I do not have the **Manage Roles** permission in this server."
+            )
+
+        if role not in member.roles:
+            return await ctx.edit_original_response(
+                content=f"{member.mention} does not have the role {role.mention}.",
+                allowed_mentions=discord.AllowedMentions.none(),
             )
 
         try:
-            await member.remove_roles(role)
+            await member.remove_roles(role, reason=reason)
+
+        except (discord.HTTPException, discord.errors.HTTPException):
+            return await ctx.edit_original_response(
+                content=f"I do not have permission to remove that role.",
+                allowed_mentions=discord.AllowedMentions.none(),
+            )
 
         except (discord.errors.Forbidden, discord.Forbidden):
             return await ctx.edit_original_response(
-                content=f"I do not have permission to remove that role from **{member}**."
+                content=f"I do not have permission to remove {role.mention} from {member.mention}.",
+                allowed_mentions=discord.AllowedMentions.none(),
             )
 
         await ctx.edit_original_response(
-            content=f"The role **{role}** has been removed from **{member}**."
+            content=f"{role.mention} has been removed from {member.mention}."
         )
         await log_role_action(
-            ctx=ctx, role=role, moderator=ctx.user, action="Role Removed", member=member
+            ctx=ctx,
+            role=role,
+            moderator=ctx.user,
+            action="Role Removed",
+            member=member,
+            reason=reason,
         )
 
-    @app_commands.command(
-        name="deleterole", description="Delete an existing role from the server."
-    )
+    @app_commands.command(name="delete")
     @app_commands.check(_roles_perms_check)
     @app_commands.checks.dynamic_cooldown(cooldown_level_0)
-    @app_commands.guild_only()
-    async def _del_role(self, ctx: discord.Interaction, role: discord.Role):
+    async def _role_delete(
+        self,
+        ctx: discord.Interaction,
+        role: discord.Role,
+        reason: Optional[str] = None,
+    ):
+        """Delete an existing role from the server.
+
+        Parameters
+        ----------
+        role : discord.Role
+            The role to delete.
+        reason : Optional[str]
+            The reason for deleting the role.
+
+        """
         # noinspection PyUnresolvedReferences
         await ctx.response.defer(thinking=True)
 
         if not ctx.guild.me.guild_permissions.manage_roles:
             return await ctx.edit_original_response(
-                content="I do not have the permission to create roles."
+                content="I do not have the **Manage Roles** permission in this server."
             )
 
         try:
             await role.delete()
+
+        except (discord.HTTPException, discord.errors.HTTPException):
+            return await ctx.edit_original_response(
+                content="I cannot delete that role."
+            )
+
         except (discord.errors.Forbidden, discord.Forbidden):
             return await ctx.edit_original_response(
                 content="I do not have permission to delete that role."
@@ -166,24 +297,28 @@ class Roles(commands.Cog):
             content=f"The role **{role}** has been deleted."
         )
         await log_role_action(
-            ctx=ctx, role=role, moderator=ctx.user, action="Role Deleted"
+            ctx=ctx,
+            role=role,
+            moderator=ctx.user,
+            action="Role Deleted",
+            reason=reason,
         )
 
-    @_new_role.error
-    @_add_role.error
-    @_remove_role.error
-    @_del_role.error
+    @_role_create.error
+    @_role_add.error
+    @_role_remove.error
+    @_role_delete.error
     async def _roles_perms_check_error(
         self, ctx: discord.Interaction, error: app_commands.AppCommandError
     ):
         if isinstance(error, app_commands.CheckFailure):
             # noinspection PyUnresolvedReferences
             return await ctx.response.send_message(
-                "You do not have permissions to execute this command."
-                "\n **Required Permission** : *Manage Roles*",
+                "You do not have permissions to perform this command."
+                "\n**Required Permission** : *Manage Roles*",
                 ephemeral=True,
             )
 
 
-async def setup(bot):
+async def setup(bot: FumeGuard):
     await bot.add_cog(Roles(bot))

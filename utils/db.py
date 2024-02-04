@@ -1,29 +1,13 @@
-import json
-import asyncio
+from __future__ import annotations
+from typing import TYPE_CHECKING, Optional
+
 from datetime import datetime
 
-import aiomysql
-
-with open("config.json") as json_file:
-    data = json.load(json_file)
-    db_name = data["db_name"]
-    db_user = data["db_user"]
-    db_password = data["db_password"]
-    db_host = data["db_host"]
-    db_port = data["db_port"]
+if TYPE_CHECKING:
+    import aiomysql
 
 
-async def guild_exists(guild_id: int):
-    pool = await aiomysql.create_pool(
-        host=db_host,
-        port=db_port,
-        user=db_user,
-        password=db_password,
-        db=db_name,
-        autocommit=True,
-        loop=asyncio.get_event_loop(),
-    )
-
+async def guild_exists(pool: aiomysql.Pool, guild_id: int):
     async with pool.acquire() as conn:
         async with conn.cursor() as cur:
             await cur.execute(
@@ -32,45 +16,52 @@ async def guild_exists(guild_id: int):
 
             res = await cur.fetchone()
 
-    pool.close()
-    await pool.wait_closed()
-
     if not res:
         return False
 
     return True
 
 
-async def add_guild(guild_id: int):
-    pool = await aiomysql.create_pool(
-        host=db_host,
-        port=db_port,
-        user=db_user,
-        password=db_password,
-        db=db_name,
-        autocommit=True,
-        loop=asyncio.get_event_loop(),
-    )
-
+async def add_guild(pool: aiomysql.Pool, guild_id: int):
     async with pool.acquire() as conn:
         async with conn.cursor() as cur:
-            await cur.execute("insert into guilds (GUILD_ID) values (%s);", (guild_id,))
+            await cur.execute(
+                "insert into guilds (GUILD_ID) values (%s);", (guild_id,)
+            )
 
-    pool.close()
-    await pool.wait_closed()
+
+async def is_blacklisted_user(pool: aiomysql.Pool, user_id: int):
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cur:
+            await cur.execute(
+                "select USER_ID from user_blacklist where USER_ID = %s;", (user_id,)
+            )
+
+            res = await cur.fetchone()
+
+    if not res or not res[0]:
+        return False
+
+    return True
 
 
-async def is_premium_user(user_id: int):
-    pool = await aiomysql.create_pool(
-        host=db_host,
-        port=db_port,
-        user=db_user,
-        password=db_password,
-        db=db_name,
-        autocommit=True,
-        loop=asyncio.get_event_loop(),
-    )
+async def is_blacklisted_guild(pool: aiomysql.Pool, guild_id: int):
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cur:
+            await cur.execute(
+                "select GUILD_ID from guild_blacklist where GUILD_ID = %s;",
+                (guild_id,),
+            )
 
+            res = await cur.fetchone()
+
+    if not res or not res[0]:
+        return False
+
+    return True
+
+
+async def is_premium_user(pool: aiomysql.Pool, user_id: int):
     async with pool.acquire() as conn:
         async with conn.cursor() as cur:
             await cur.execute(
@@ -79,26 +70,13 @@ async def is_premium_user(user_id: int):
 
             res = await cur.fetchone()
 
-    pool.close()
-    await pool.wait_closed()
-
     if not res or not res[0]:
         return False
 
     return True
 
 
-async def is_premium_guild(user_id: int):
-    pool = await aiomysql.create_pool(
-        host=db_host,
-        port=db_port,
-        user=db_user,
-        password=db_password,
-        db=db_name,
-        autocommit=True,
-        loop=asyncio.get_event_loop(),
-    )
-
+async def is_premium_guild(pool: aiomysql.Pool, user_id: int):
     async with pool.acquire() as conn:
         async with conn.cursor() as cur:
             await cur.execute(
@@ -107,51 +85,28 @@ async def is_premium_guild(user_id: int):
 
             res = await cur.fetchone()
 
-    pool.close()
-    await pool.wait_closed()
-
     if not res or not res[0]:
         return False
 
     return True
 
 
-async def get_mod_log_channel(guild_id: int):
-    pool = await aiomysql.create_pool(
-        host=db_host,
-        port=db_port,
-        user=db_user,
-        password=db_password,
-        db=db_name,
-        autocommit=True,
-        loop=asyncio.get_event_loop(),
-    )
-
+async def get_mod_log_channel(pool: aiomysql.Pool, guild_id: int):
     async with pool.acquire() as conn:
         async with conn.cursor() as cur:
             await cur.execute(
-                "select MOD_LOG_CHANNEL from guilds where GUILD_ID = %s;", (guild_id,)
+                "select MOD_LOG_CHANNEL from guilds where GUILD_ID = %s;",
+                (guild_id,),
             )
 
             res = await cur.fetchone()
 
-    pool.close()
-    await pool.wait_closed()
-
     return None if not res else res[0]
 
 
-async def update_mod_log_channel(guild_id: int, channel_id: int):
-    pool = await aiomysql.create_pool(
-        host=db_host,
-        port=db_port,
-        user=db_user,
-        password=db_password,
-        db=db_name,
-        autocommit=True,
-        loop=asyncio.get_event_loop(),
-    )
-
+async def update_mod_log_channel(
+    pool: aiomysql.Pool, guild_id: int, channel_id: Optional[int] = None
+):
     async with pool.acquire() as conn:
         async with conn.cursor() as cur:
             await cur.execute(
@@ -159,21 +114,8 @@ async def update_mod_log_channel(guild_id: int, channel_id: int):
                 (channel_id, guild_id),
             )
 
-    pool.close()
-    await pool.wait_closed()
 
-
-async def get_member_log_channel(guild_id: int):
-    pool = await aiomysql.create_pool(
-        host=db_host,
-        port=db_port,
-        user=db_user,
-        password=db_password,
-        db=db_name,
-        autocommit=True,
-        loop=asyncio.get_event_loop(),
-    )
-
+async def get_member_log_channel(pool: aiomysql.Pool, guild_id: int):
     async with pool.acquire() as conn:
         async with conn.cursor() as cur:
             await cur.execute(
@@ -183,23 +125,12 @@ async def get_member_log_channel(guild_id: int):
 
             res = await cur.fetchone()
 
-    pool.close()
-    await pool.wait_closed()
-
     return None if not res else res[0]
 
 
-async def update_member_log_channel(guild_id: int, channel_id: int):
-    pool = await aiomysql.create_pool(
-        host=db_host,
-        port=db_port,
-        user=db_user,
-        password=db_password,
-        db=db_name,
-        autocommit=True,
-        loop=asyncio.get_event_loop(),
-    )
-
+async def update_member_log_channel(
+    pool: aiomysql.Pool, guild_id: int, channel_id: Optional[int] = None
+):
     async with pool.acquire() as conn:
         async with conn.cursor() as cur:
             await cur.execute(
@@ -207,93 +138,23 @@ async def update_member_log_channel(guild_id: int, channel_id: int):
                 (channel_id, guild_id),
             )
 
-    pool.close()
-    await pool.wait_closed()
 
-
-async def get_case_id(guild_id: int):
-    pool = await aiomysql.create_pool(
-        host=db_host,
-        port=db_port,
-        user=db_user,
-        password=db_password,
-        db=db_name,
-        autocommit=True,
-        loop=asyncio.get_event_loop(),
-    )
-
+async def get_welcome_message(pool: aiomysql.Pool, guild_id: int):
     async with pool.acquire() as conn:
         async with conn.cursor() as cur:
             await cur.execute(
-                "select CASE_ID from guilds where GUILD_ID = %s;", (guild_id,)
-            )
-
-            res = await cur.fetchone()
-
-    pool.close()
-    await pool.wait_closed()
-
-    return 1 if not res[0] else res[0]
-
-
-async def update_case_id(guild_id: int):
-    pool = await aiomysql.create_pool(
-        host=db_host,
-        port=db_port,
-        user=db_user,
-        password=db_password,
-        db=db_name,
-        autocommit=True,
-        loop=asyncio.get_event_loop(),
-    )
-
-    async with pool.acquire() as conn:
-        async with conn.cursor() as cur:
-            await cur.execute(
-                "update guilds set CASE_ID = CASE_ID + 1 where GUILD_ID = %s;",
+                "select WELCOME_MESSAGE from guilds where GUILD_ID = %s;",
                 (guild_id,),
             )
 
-    pool.close()
-    await pool.wait_closed()
-
-
-async def get_welcome_message(guild_id: int):
-    pool = await aiomysql.create_pool(
-        host=db_host,
-        port=db_port,
-        user=db_user,
-        password=db_password,
-        db=db_name,
-        autocommit=True,
-        loop=asyncio.get_event_loop(),
-    )
-
-    async with pool.acquire() as conn:
-        async with conn.cursor() as cur:
-            await cur.execute(
-                "select WELCOME_MESSAGE from guilds where GUILD_ID = %s;", (guild_id,)
-            )
-
             res = await cur.fetchone()
-
-    pool.close()
-    await pool.wait_closed()
 
     return None if not res else res[0]
 
 
-async def update_welcome_message(guild_id: int, message: str):
-    pool = await aiomysql.create_pool(
-        host=db_host,
-        port=db_port,
-        user=db_user,
-        password=db_password,
-        db=db_name,
-        autocommit=True,
-        loop=asyncio.get_event_loop(),
-    )
-
+async def update_welcome_message(
+    pool: aiomysql.Pool, guild_id: int, message: Optional[str] = None
+):
     async with pool.acquire() as conn:
         async with conn.cursor() as cur:
             await cur.execute(
@@ -301,43 +162,29 @@ async def update_welcome_message(guild_id: int, message: str):
                 (message, guild_id),
             )
 
-    pool.close()
-    await pool.wait_closed()
 
-
-async def set_afk(user_id: int, guild_id: int, reason: str):
-    pool = await aiomysql.create_pool(
-        host=db_host,
-        port=db_port,
-        user=db_user,
-        password=db_password,
-        db=db_name,
-        autocommit=True,
-        loop=asyncio.get_event_loop(),
-    )
-
+async def get_case_number(pool: aiomysql.Pool, guild_id: int):
     async with pool.acquire() as conn:
         async with conn.cursor() as cur:
             await cur.execute(
-                "insert into afk (USER_ID, GUILD_ID, START, REASON) values (%s, %s, %s, %s);",
-                (user_id, guild_id, datetime.now(), reason),
+                "select CASE_NUMBER from guilds where GUILD_ID = %s;", (guild_id,)
             )
 
-    pool.close()
-    await pool.wait_closed()
+            res = await cur.fetchone()
+
+    return 1 if not res[0] else res[0]
 
 
-async def is_afk(user_id: int, guild_id: int):
-    pool = await aiomysql.create_pool(
-        host=db_host,
-        port=db_port,
-        user=db_user,
-        password=db_password,
-        db=db_name,
-        autocommit=True,
-        loop=asyncio.get_event_loop(),
-    )
+async def increment_case_number(pool: aiomysql.Pool, guild_id: int):
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cur:
+            await cur.execute(
+                "update guilds set CASE_NUMBER = CASE_NUMBER + 1 where GUILD_ID = %s;",
+                (guild_id,),
+            )
 
+
+async def is_afk(pool: aiomysql.Pool, user_id: int, guild_id: int):
     async with pool.acquire() as conn:
         async with conn.cursor() as cur:
             await cur.execute(
@@ -346,23 +193,21 @@ async def is_afk(user_id: int, guild_id: int):
             )
             res = await cur.fetchone()
 
-    pool.close()
-    await pool.wait_closed()
-
     return True if res else False
 
 
-async def get_afk_details(user_id: int, guild_id: int):
-    pool = await aiomysql.create_pool(
-        host=db_host,
-        port=db_port,
-        user=db_user,
-        password=db_password,
-        db=db_name,
-        autocommit=True,
-        loop=asyncio.get_event_loop(),
-    )
+async def set_afk(
+    pool: aiomysql.Pool, user_id: int, guild_id: int, reason: Optional[str] = None
+):
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cur:
+            await cur.execute(
+                "insert into afk (USER_ID, GUILD_ID, START, REASON) values (%s, %s, %s, %s);",
+                (user_id, guild_id, datetime.now(), reason),
+            )
 
+
+async def get_afk_details(pool: aiomysql.Pool, user_id: int, guild_id: int):
     async with pool.acquire() as conn:
         async with conn.cursor() as cur:
             await cur.execute(
@@ -371,23 +216,10 @@ async def get_afk_details(user_id: int, guild_id: int):
             )
             res = await cur.fetchone()
 
-    pool.close()
-    await pool.wait_closed()
-
     return {"user_id": res[0], "guild_id": res[1], "start": res[2], "reason": res[3]}
 
 
-async def get_afk_members(guild_id: int):
-    pool = await aiomysql.create_pool(
-        host=db_host,
-        port=db_port,
-        user=db_user,
-        password=db_password,
-        db=db_name,
-        autocommit=True,
-        loop=asyncio.get_event_loop(),
-    )
-
+async def get_afk_members(pool: aiomysql.Pool, guild_id: int):
     async with pool.acquire() as conn:
         async with conn.cursor() as cur:
             await cur.execute(
@@ -395,23 +227,10 @@ async def get_afk_members(guild_id: int):
             )
             res = await cur.fetchall()
 
-    pool.close()
-    await pool.wait_closed()
-
     return res
 
 
-async def remove_afk(user_id: int, guild_id):
-    pool = await aiomysql.create_pool(
-        host=db_host,
-        port=db_port,
-        user=db_user,
-        password=db_password,
-        db=db_name,
-        autocommit=True,
-        loop=asyncio.get_event_loop(),
-    )
-
+async def remove_afk(pool: aiomysql.Pool, user_id: int, guild_id):
     async with pool.acquire() as conn:
         async with conn.cursor() as cur:
             await cur.execute(
@@ -419,8 +238,5 @@ async def remove_afk(user_id: int, guild_id):
                 (user_id, guild_id),
             )
             res = await cur.fetchone()
-
-    pool.close()
-    await pool.wait_closed()
 
     return res

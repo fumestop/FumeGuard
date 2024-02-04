@@ -1,3 +1,6 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
 import math
 from datetime import datetime
 
@@ -5,20 +8,24 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from utils.tools import cooldown_level_0
+from utils.cd import cooldown_level_0
+
+if TYPE_CHECKING:
+    from bot import FumeGuard
 
 
 class General(commands.Cog):
-    def __init__(self, bot):
-        self.bot = bot
+    def __init__(self, bot: FumeGuard):
+        self.bot: FumeGuard = bot
 
-    @app_commands.command(name="ping", description="Returns the API and bot latency.")
+    @app_commands.command(name="ping")
     @app_commands.checks.dynamic_cooldown(cooldown_level_0)
     async def _ping(self, ctx: discord.Interaction):
+        """Returns the API and bot latency."""
         # noinspection PyUnresolvedReferences
         await ctx.response.defer(thinking=True)
 
-        embed = discord.Embed(colour=self.bot.embed_colour)
+        embed = discord.Embed(colour=self.bot.embed_color)
         embed.description = "**Pong!**"
 
         ms = self.bot.latency * 1000
@@ -36,11 +43,23 @@ class General(commands.Cog):
 
         await ctx.edit_original_response(embed=embed)
 
-    @app_commands.command(
-        name="web", description="Shows web resources about FumeGuard."
-    )
+    @app_commands.command(name="uptime")
+    @app_commands.checks.dynamic_cooldown(cooldown_level_0)
+    async def _uptime(self, ctx: discord.Interaction):
+        """Shows how long has FumeGuard has been up for."""
+        # noinspection PyUnresolvedReferences
+        await ctx.response.defer(thinking=True)
+
+        await ctx.edit_original_response(
+            content=f"I have been up since "
+            f"<t:{int(self.bot.launch_time.timestamp())}:F> "
+            f"(<t:{int(self.bot.launch_time.timestamp())}:R>)."
+        )
+
+    @app_commands.command(name="web")
     @app_commands.checks.dynamic_cooldown(cooldown_level_0)
     async def _web(self, ctx: discord.Interaction):
+        """Shows the links to various FumeGuard resources on the web."""
         # noinspection PyUnresolvedReferences
         await ctx.response.defer(thinking=True)
 
@@ -66,11 +85,10 @@ class General(commands.Cog):
             view=view,
         )
 
-    @app_commands.command(
-        name="invite", description="Shows the invite link for FumeGuard."
-    )
+    @app_commands.command(name="invite")
     @app_commands.checks.dynamic_cooldown(cooldown_level_0)
     async def _invite(self, ctx: discord.Interaction):
+        """Sends the link to invite FumeGuard to your server."""
         # noinspection PyUnresolvedReferences
         await ctx.response.defer(thinking=True)
 
@@ -86,9 +104,10 @@ class General(commands.Cog):
             content="Thank you for choosing me!", view=view
         )
 
-    @app_commands.command(name="vote", description="Vote for FumeGuard on Top.GG!")
+    @app_commands.command(name="vote")
     @app_commands.checks.dynamic_cooldown(cooldown_level_0)
     async def _vote(self, ctx: discord.Interaction):
+        """Sends the link to vote for FumeGuard on Top.GG."""
         # noinspection PyUnresolvedReferences
         await ctx.response.defer(thinking=True)
 
@@ -101,29 +120,28 @@ class General(commands.Cog):
             content="Thank you for choosing to vote for me!", view=view
         )
 
-    @app_commands.command(
-        name="review", description="Leave a review for FumeGuard on Top.GG!"
-    )
+    @app_commands.command(name="review")
     @app_commands.checks.dynamic_cooldown(cooldown_level_0)
     async def _review(self, ctx: discord.Interaction):
+        """Sends the link to review FumeGuard on Top.GG."""
         # noinspection PyUnresolvedReferences
         await ctx.response.defer(thinking=True)
 
         view = discord.ui.View()
         view.add_item(
-            discord.ui.Button(label="Review", url="https://fumes.top/fumeguard/review")
+            discord.ui.Button(
+                label="Review", url="https://fumes.top/fumeguard/review"
+            )
         )
 
         await ctx.edit_original_response(
             content="Thank you for reviewing me!", view=view
         )
 
-    @app_commands.command(
-        name="community",
-        description="Sends the invite to the official community server.",
-    )
+    @app_commands.command(name="community")
     @app_commands.checks.dynamic_cooldown(cooldown_level_0)
     async def _community(self, ctx: discord.Interaction):
+        """Sends the link to the FumeGuard community server."""
         # noinspection PyUnresolvedReferences
         await ctx.response.defer(thinking=True)
 
@@ -139,5 +157,5 @@ class General(commands.Cog):
         )
 
 
-async def setup(bot):
+async def setup(bot: FumeGuard):
     await bot.add_cog(General(bot))

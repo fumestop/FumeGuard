@@ -1,3 +1,6 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING, Optional
+
 import datetime
 
 import discord
@@ -5,12 +8,16 @@ from discord import app_commands
 from discord.ext import commands
 
 from utils.logger import log_mod_action
-from utils.tools import cooldown_level_0
+from utils.cd import cooldown_level_0
+from utils.modals import AnnouncementModal
+
+if TYPE_CHECKING:
+    from bot import FumeGuard
 
 
 class Moderation(commands.Cog):
-    def __init__(self, bot):
-        self.bot = bot
+    def __init__(self, bot: FumeGuard):
+        self.bot: FumeGuard = bot
 
     @staticmethod
     def _kick_perms_check(ctx: discord.Interaction):
@@ -28,20 +35,33 @@ class Moderation(commands.Cog):
     def _moderate_members_perms_check(ctx: discord.Interaction):
         return ctx.guild.me.guild_permissions.moderate_members
 
-    @app_commands.command(name="kick", description="Kick a member from the server.")
+    @app_commands.command(name="kick")
     @app_commands.check(_kick_perms_check)
     @app_commands.checks.dynamic_cooldown(cooldown_level_0)
     @app_commands.guild_only()
     async def _kick(
-        self, ctx: discord.Interaction, member: discord.Member, reason: str = None
+        self,
+        ctx: discord.Interaction,
+        member: discord.Member,
+        reason: Optional[str] = None,
     ):
+        """Kick a member from the server.
+
+        Parameters
+        ----------
+        member: discord.Member
+            The member to kick from the server.
+        reason: Optional[str]
+            The reason for kicking the member.
+
+        """
         # noinspection PyUnresolvedReferences
         await ctx.response.defer(thinking=True)
 
         if not ctx.user.guild_permissions.kick_members:
             return await ctx.edit_original_response(
                 content="You need the **Kick Members** permission in this server "
-                "to execute this action."
+                "to perform this action."
             )
 
         if not ctx.user == ctx.guild.owner and member.top_role > ctx.user.top_role:
@@ -73,7 +93,7 @@ class Moderation(commands.Cog):
             color="red",
         )
 
-    @app_commands.command(name="ban", description="Ban a member from the server")
+    @app_commands.command(name="ban")
     @app_commands.check(_ban_perms_check)
     @app_commands.checks.dynamic_cooldown(cooldown_level_0)
     @app_commands.guild_only()
@@ -81,16 +101,28 @@ class Moderation(commands.Cog):
         self,
         ctx: discord.Interaction,
         member: discord.Member,
-        delete_message_days: int = None,
-        reason: str = None,
+        delete_message_days: Optional[int] = None,
+        reason: Optional[str] = None,
     ):
+        """Ban a member from the server.
+
+        Parameters
+        ----------
+        member: discord.Member
+            The member to ban from the server.
+        delete_message_days: Optional[int]
+            The number of days of messages to delete sent by the member.
+        reason: Optional[str]
+            The reason for banning the member.
+
+        """
         # noinspection PyUnresolvedReferences
         await ctx.response.defer(thinking=True)
 
         if not ctx.user.guild_permissions.ban_members:
             return await ctx.edit_original_response(
                 content="You need the **Ban Members** permission in this server "
-                "to execute this action."
+                "to perform this action."
             )
 
         if not ctx.user == ctx.guild.owner and member.top_role > ctx.user.top_role:
@@ -122,20 +154,31 @@ class Moderation(commands.Cog):
             color="red",
         )
 
-    @app_commands.command(
-        name="unban", description="Unban a previously banned member in the server."
-    )
+    @app_commands.command(name="unban")
     @app_commands.check(_ban_perms_check)
     @app_commands.checks.dynamic_cooldown(cooldown_level_0)
     @app_commands.guild_only()
-    async def _unban(self, ctx: discord.Interaction, member: str, reason: str = None):
+    async def _unban(
+        self, ctx: discord.Interaction, member: str, reason: Optional[str] = None
+    ):
+        """Unban a previously banned member in the server.
+
+        Parameters
+        ----------
+        member: str
+            The name of the member to unban.
+        reason: Optional[str]
+            The reason for unbanning the member.
+
+        """
+
         # noinspection PyUnresolvedReferences
         await ctx.response.defer(thinking=True)
 
         if not ctx.user.guild_permissions.ban_members:
             return await ctx.edit_original_response(
                 content="You need the **Ban Members** permission in this server "
-                "to execute this action."
+                "to perform this action."
             )
 
         try:
@@ -176,7 +219,6 @@ class Moderation(commands.Cog):
                     await ctx.edit_original_response(
                         content=f"**{member}** has been unbanned!"
                     )
-
                     return await log_mod_action(
                         ctx=ctx,
                         member=user,
@@ -192,7 +234,7 @@ class Moderation(commands.Cog):
         else:
             await ctx.edit_original_response(content="No such banned user found.")
 
-    @app_commands.command(name="mute", description="Timeout a member in the server.")
+    @app_commands.command(name="mute")
     @app_commands.check(_moderate_members_perms_check)
     @app_commands.checks.dynamic_cooldown(cooldown_level_0)
     @app_commands.guild_only()
@@ -200,18 +242,34 @@ class Moderation(commands.Cog):
         self,
         ctx: discord.Interaction,
         member: discord.Member,
-        minutes: int = None,
-        hours: int = None,
-        days: int = None,
-        reason: str = None,
+        minutes: Optional[int] = None,
+        hours: Optional[int] = None,
+        days: Optional[int] = None,
+        reason: Optional[str] = None,
     ):
+        """Timeout a member in the server.
+
+        Parameters
+        ----------
+        member: discord.Member
+            The member to timeout in the server.
+
+        minutes: Optional[int]
+            The number of minutes for which the member should be timed out.
+        hours: Optional[int]
+            The number of hours for which the member should be timed out.
+        days: Optional[int]
+            The number of days for which the member should be timed out.
+        reason: Optional[str]
+            The reason for timing out the member.
+        """
         # noinspection PyUnresolvedReferences
         await ctx.response.defer(thinking=True)
 
         if not ctx.user.guild_permissions.moderate_members:
             return await ctx.edit_original_response(
                 content="You need the **Moderate Members** permission "
-                "in this server to execute this action."
+                "in this server to perform this action."
             )
 
         if not ctx.user == ctx.guild.owner and member.top_role > ctx.user.top_role:
@@ -221,13 +279,13 @@ class Moderation(commands.Cog):
             )
 
         await member.timeout(
-            datetime.timedelta(minutes=minutes, hours=hours, days=days), reason=reason
+            datetime.timedelta(minutes=minutes, hours=hours, days=days),
+            reason=reason,
         )
 
         await ctx.edit_original_response(
             content=f"**{member}** has been timed out in the server!"
         )
-
         await log_mod_action(
             ctx=ctx,
             member=member,
@@ -237,22 +295,33 @@ class Moderation(commands.Cog):
             color="red",
         )
 
-    @app_commands.command(
-        name="unmute", description="Remove the timeout for a member in the server."
-    )
+    @app_commands.command(name="unmute")
     @app_commands.check(_moderate_members_perms_check)
     @app_commands.checks.dynamic_cooldown(cooldown_level_0)
     @app_commands.guild_only()
     async def _unmute(
-        self, ctx: discord.Interaction, member: discord.Member, reason: str = None
+        self,
+        ctx: discord.Interaction,
+        member: discord.Member,
+        reason: Optional[str] = None,
     ):
+        """Remove the timeout for a member in the server.
+
+        Parameters
+        ----------
+        member: discord.Member
+            The member to remove the timeout for.
+        reason: Optional[str]
+            The reason for removing the timeout.
+
+        """
         # noinspection PyUnresolvedReferences
         await ctx.response.defer(thinking=True)
 
         if not ctx.user.guild_permissions.moderate_members:
             return await ctx.edit_original_response(
                 content="You need the **Moderate Members** permission "
-                "in this server to execute this action."
+                "in this server to perform this action."
             )
 
         await member.timeout(None, reason=reason)
@@ -260,7 +329,6 @@ class Moderation(commands.Cog):
         await ctx.edit_original_response(
             content=f"**{member}** has been unmuted in the server!"
         )
-
         await log_mod_action(
             ctx=ctx,
             member=member,
@@ -270,21 +338,35 @@ class Moderation(commands.Cog):
             color="green",
         )
 
-    @app_commands.command(
-        name="channel_mute", description="Mute a member in the channel."
-    )
+    @app_commands.command(name="channelmute")
     @app_commands.checks.dynamic_cooldown(cooldown_level_0)
     @app_commands.guild_only()
     async def _channel_mute(
-        self, ctx: discord.Interaction, member: discord.Member, reason: str = None
+        self,
+        ctx: discord.Interaction,
+        member: discord.Member,
+        channel: Optional[discord.TextChannel] = None,
+        reason: Optional[str] = None,
     ):
+        """Mute a member in a channel.
+
+        Parameters
+        ----------
+        member: discord.Member
+            The member to mute in the channel.
+        channel: Optional[discord.TextChannel]
+            The channel to mute the member in. If not provided, the current channel is used.
+        reason: Optional[str]
+            The reason for muting the member.
+
+        """
         # noinspection PyUnresolvedReferences
         await ctx.response.defer(thinking=True)
 
         if not ctx.user.guild_permissions.moderate_members:
             return await ctx.edit_original_response(
                 content="You need the **Moderate Members** permission "
-                "in this server to execute this action."
+                "in this server to perform this action."
             )
 
         if not ctx.user == ctx.guild.owner and member.top_role > ctx.user.top_role:
@@ -294,24 +376,26 @@ class Moderation(commands.Cog):
                 f"you are trying to mute."
             )
 
-        if not ctx.channel.permissions_for(member).send_messages:
+        channel = channel or ctx.channel
+
+        if not channel.permissions_for(member).send_messages:
             return await ctx.edit_original_response(
-                content=f"****{member}**** is already muted in this channel."
+                content=f"****{member}**** is already muted in {channel.mention}."
             )
 
         try:
-            await ctx.channel.set_permissions(
+            await channel.set_permissions(
                 member, read_messages=True, send_messages=False
             )
 
         except (discord.Forbidden, discord.errors.Forbidden):
             return await ctx.edit_original_response(
-                content="I do not have the permission to manage permissions "
-                "for this channel. "
+                content=f"I do not have the permission to "
+                f"manage permissions for {channel.mention}."
             )
 
         await ctx.edit_original_response(
-            content=f"**{member}** has been muted in this channel!"
+            content=f"**{member}** has been muted in {channel.mention}!"
         )
         await log_mod_action(
             ctx=ctx,
@@ -319,43 +403,59 @@ class Moderation(commands.Cog):
             moderator=ctx.user,
             action="Member Channel Muted",
             reason=reason,
-            channel=ctx.channel,
+            channel=channel,
             color="red",
         )
 
-    @app_commands.command(
-        name="channel_unmute", description="Unmute a member in the channel"
-    )
+    @app_commands.command(name="channelunmute")
     @app_commands.checks.dynamic_cooldown(cooldown_level_0)
     @app_commands.guild_only()
     async def _channel_unmute(
-        self, ctx: discord.Interaction, member: discord.Member, reason: str = None
+        self,
+        ctx: discord.Interaction,
+        member: discord.Member,
+        channel: Optional[discord.TextChannel],
+        reason: Optional[str] = None,
     ):
+        """Unmute a member in a channel.
+
+        Parameters
+        ----------
+        member: discord.Member
+            The member to unmute in the channel.
+        channel: Optional[discord.TextChannel]
+            The channel to unmute the member in. If not provided, the current channel is used.
+        reason: Optional[str]
+            The reason for unmuting the member.
+
+        """
         # noinspection PyUnresolvedReferences
         await ctx.response.defer(thinking=True)
 
         if not ctx.user.guild_permissions.moderate_members:
             return await ctx.edit_original_response(
                 content="You need the **Moderate Members** permission "
-                "in this server to execute this action."
+                "in this server to perform this action."
             )
 
-        if ctx.channel.permissions_for(member).send_messages:
+        channel = channel or ctx.channel
+
+        if channel.permissions_for(member).send_messages:
             return await ctx.edit_original_response(
-                content=f"****{member}**** is not muted in this channel yet."
+                content=f"****{member}**** is not muted in {channel.mention} yet."
             )
 
         try:
-            await ctx.channel.set_permissions(member, overwrite=None)
+            await channel.set_permissions(member, overwrite=None)
 
         except (discord.Forbidden, discord.errors.Forbidden):
             return await ctx.edit_original_response(
-                content="I do not have the permission to manage permissions "
-                "for this channel. "
+                content=f"I do not have the permission to "
+                f"manage permissions for {channel.mention}."
             )
 
         await ctx.edit_original_response(
-            content=f"**{member}** has been unmuted in this channel!"
+            content=f"**{member}** has been unmuted in {channel.mention}!"
         )
         await log_mod_action(
             ctx=ctx,
@@ -363,31 +463,42 @@ class Moderation(commands.Cog):
             moderator=ctx.user,
             action="Member Channel Unmuted",
             reason=reason,
-            channel=ctx.channel,
+            channel=channel,
             color="green",
         )
 
-    @app_commands.command(name="warn", description="Issue a warning to a member.")
+    @app_commands.command(name="warn")
     @app_commands.check(_kick_perms_check)
     @app_commands.checks.dynamic_cooldown(cooldown_level_0)
     @app_commands.guild_only()
     async def _warn(
-        self, ctx: discord.Interaction, member: discord.Member, reason: str = None
+        self,
+        ctx: discord.Interaction,
+        member: discord.Member,
+        reason: Optional[str] = None,
     ):
+        """Issue a warning to a member.
+
+        Parameters
+        ----------
+        member: discord.Member
+            The member to issue a warning to.
+        reason: str
+            The reason for issuing the warning.
+
+        """
         # noinspection PyUnresolvedReferences
         await ctx.response.defer(thinking=True)
 
         if not ctx.user == ctx.guild.owner and member.top_role > ctx.user.top_role:
             return await ctx.edit_original_response(
-                content=f"You cannot warn **{member}**. "
-                f"Make sure you have a role higher than the member "
-                f"you are trying to warn."
+                content=f"You cannot warn **{member}**. Make sure you have a role "
+                f"higher than the member you are trying to warn."
             )
 
         try:
-            await member.create_dm()
             await member.send(
-                f"{member.mention} You have been warned by {ctx.user} with reason {reason}!"
+                f"{member.mention} - You have been warned by **{ctx.user}** with reason *{reason}*!"
             )
 
         except (discord.errors.Forbidden, discord.Forbidden):
@@ -403,14 +514,19 @@ class Moderation(commands.Cog):
             color="red",
         )
 
-    @app_commands.command(
-        name="clear",
-        description="Clear messages from the channel (maximum 100)",
-    )
+    @app_commands.command(name="clear")
     @app_commands.check(_clear_perms_check)
     @app_commands.checks.dynamic_cooldown(cooldown_level_0)
     @app_commands.guild_only()
     async def _clear(self, ctx: discord.Interaction, amount: int):
+        """Clear messages from the channel.
+
+        Parameters
+        ----------
+        amount: int
+            The number of messages to clear from the channel (between 1 and 100).
+
+        """
         # noinspection PyUnresolvedReferences
         await ctx.response.defer(thinking=True)
 
@@ -418,18 +534,16 @@ class Moderation(commands.Cog):
             try:
                 await ctx.delete_original_response()
                 await ctx.channel.purge(
-                    limit=amount, reason=f"{amount} messages cleared by {ctx.user}"
+                    limit=amount,
+                    reason=f"{amount} messages cleared by {ctx.user.name}",
                 )
 
             except (discord.Forbidden, discord.errors.Forbidden):
                 return await ctx.edit_original_response(
-                    content="I do not have permission to delete messages "
-                    "in this channel. Please look for any channel-specific "
-                    "overwrites and try again."
+                    content="I do not have permission to delete messages in this channel."
                 )
 
-            await ctx.channel.send("\U00002705", delete_after=5)
-
+            await ctx.channel.send(content="\U00002705", delete_after=5)
             await log_mod_action(
                 ctx=ctx,
                 moderator=ctx.user,
@@ -444,45 +558,55 @@ class Moderation(commands.Cog):
                 content=f"The number of messages can be between 1 and 100 only."
             )
 
-    @app_commands.command(
-        name="announce", description="Make an announcement in a channel."
-    )
+    @app_commands.command(name="announce")
     @app_commands.checks.dynamic_cooldown(cooldown_level_0)
     @app_commands.guild_only()
+    @app_commands.choices(
+        mention=[
+            app_commands.Choice(name="everyone", value="everyone"),
+            app_commands.Choice(name="here", value="here"),
+            app_commands.Choice(name="none", value="none"),
+        ]
+    )
     async def _announce(
         self,
         ctx: discord.Interaction,
         channel: discord.TextChannel,
-        mention: str,
-        message: str,
+        mention: app_commands.Choice[str],
     ):
-        # noinspection PyUnresolvedReferences
-        await ctx.response.defer(thinking=True)
-
         if not ctx.user.guild_permissions.manage_guild:
-            return await ctx.edit_original_response(
+            # noinspection PyUnresolvedReferences
+            return await ctx.response.send_message(
                 content="You need the **Manage Server** permission in this server "
-                "to execute this action."
+                "to perform this action."
             )
 
         if channel.permissions_for(ctx.guild.me).send_messages:
-            if mention == "everyone":
-                message = "@everyone " + message
+            modal = AnnouncementModal()
+            modal.ctx = ctx
 
-            elif mention == "here":
-                message = "@here " + message
+            # noinspection PyUnresolvedReferences
+            await ctx.response.send_modal(modal)
+            await modal.wait()
+
+            if mention.value == "everyone":
+                message = f"@everyone {modal.message.value}"
+
+            elif mention.value == "here":
+                message = f"@here {modal.message.value}"
 
             else:
-                message = mention + " " + message
+                message = modal.message.value
 
             await channel.send(message)
-            await ctx.delete_original_response()
+            await modal.interaction.edit_original_response(
+                content=f"The announcement has been made in {channel.mention}."
+            )
 
         else:
-            await ctx.edit_original_response(
-                content="I am missing the **Send Messages** permission "
-                "in the channel you are trying to announce. "
-                "Please give me the requisite permission and try again."
+            # noinspection PyUnresolvedReferences
+            await ctx.response.send_message(
+                content=f"I do not have permission to send messages in {channel.mention}."
             )
 
     @_kick.error
@@ -494,7 +618,7 @@ class Moderation(commands.Cog):
             # noinspection PyUnresolvedReferences
             return await ctx.response.send_message(
                 "I need the **Kick Members** permission in this server "
-                "to execute this action."
+                "to perform this action."
             )
 
     @_ban.error
@@ -506,7 +630,7 @@ class Moderation(commands.Cog):
             # noinspection PyUnresolvedReferences
             return await ctx.response.send_message(
                 "I need the **Ban Members** permission in this server "
-                "to execute this action."
+                "to perform this action."
             )
 
     @_clear.error
@@ -517,7 +641,7 @@ class Moderation(commands.Cog):
             # noinspection PyUnresolvedReferences
             return await ctx.response.send_message(
                 "I need the **Manage Messages** permission in this server "
-                "to execute this action."
+                "to perform this action."
             )
 
     @_mute.error
@@ -531,7 +655,7 @@ class Moderation(commands.Cog):
             # noinspection PyUnresolvedReferences
             return await ctx.response.send_message(
                 "I need the **Moderate Members** permission in this server "
-                "to execute this action."
+                "to perform this action."
             )
 
 

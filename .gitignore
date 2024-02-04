@@ -163,4 +163,4 @@ cython_debug/
 logs/*.log
 logs/errors/*.log
 
-config.json
+config.py

@@ -1,4 +1,5 @@
-import json
+from __future__ import annotations
+from typing import TYPE_CHECKING
 
 import discord
 from discord.ext import commands
@@ -18,24 +19,13 @@ from utils.db import (
     get_afk_details,
 )
 
+if TYPE_CHECKING:
+    from bot import FumeGuard
+
 
 class IPC(commands.Cog):
-    def __init__(self, bot):
-        self.bot = bot
-
-        with open("config.json") as json_file:
-            data = json.load(json_file)
-            self.secret_key = data["secret_key"]
-            self.standard_port = data["standard_port"]
-            self.multicast_port = data["multicast_port"]
-
-        if not hasattr(bot, "ipc"):
-            bot.ipc = Server(
-                self.bot,
-                secret_key=self.secret_key,
-                standard_port=self.standard_port,
-                multicast_port=self.multicast_port,
-            )
+    def __init__(self, bot: FumeGuard):
+        self.bot: FumeGuard = bot
 
     async def cog_load(self):
         await self.bot.ipc.start()
@@ -46,18 +36,18 @@ class IPC(commands.Cog):
     # noinspection PyUnusedLocal
     @Server.route(name="get_guild_count")
     async def _get_guild_count(self, data: ClientPayload):
-        return {"count": len(self.bot.guilds)}
+        return {"status": 200, "count": len(self.bot.guilds)}
 
     # noinspection PyUnusedLocal
     @Server.route(name="get_user_count")
     async def _get_user_count(self, data: ClientPayload):
-        return {"count": len(self.bot.users)}
+        return {"status": 200, "count": len(self.bot.users)}
 
     # noinspection PyUnusedLocal
     @Server.route(name="get_command_count")
     async def _get_command_count(self, data: ClientPayload):
         _commands = await self.bot.tree.fetch_commands()
-        return {"count": len(_commands)}
+        return {"status": 200, "count": len(_commands)}
 
     @Server.route(name="get_channel_list")
     async def _get_channel_list(self, data: ClientPayload):
@@ -104,7 +94,7 @@ class IPC(commands.Cog):
         if not guild:
             return {"error": {"code": 404, "message": "Guild not found."}}
 
-        channel_id = await get_mod_log_channel(guild.id)
+        channel_id = await get_mod_log_channel(self.bot.pool, guild.id)
 
         if channel_id:
             channel = guild.get_channel(channel_id)
@@ -120,7 +110,7 @@ class IPC(commands.Cog):
         if not guild:
             return {"error": {"code": 404, "message": "Guild not found."}}
 
-        await update_mod_log_channel(guild.id, data.channel_id)
+        await update_mod_log_channel(self.bot.pool, guild.id, data.channel_id)
 
         return {"status": 200, "message": "Success."}
 
@@ -131,7 +121,7 @@ class IPC(commands.Cog):
         if not guild:
             return {"error": {"code": 404, "message": "Guild not found."}}
 
-        channel_id = await get_member_log_channel(guild.id)
+        channel_id = await get_member_log_channel(self.bot.pool, guild.id)
 
         if channel_id:
             channel = guild.get_channel(channel_id)
@@ -147,7 +137,7 @@ class IPC(commands.Cog):
         if not guild:
             return {"error": {"code": 404, "message": "Guild not found."}}
 
-        await update_member_log_channel(guild.id, data.channel_id)
+        await update_member_log_channel(self.bot.pool, guild.id, data.channel_id)
 
         return {"status": 200, "message": "Success."}
 
@@ -158,7 +148,7 @@ class IPC(commands.Cog):
         if not guild:
             return {"error": {"code": 404, "message": "Guild not found."}}
 
-        message = await get_welcome_message(guild.id)
+        message = await get_welcome_message(self.bot.pool, guild.id)
 
         return {"message": message}
 
@@ -169,7 +159,7 @@ class IPC(commands.Cog):
         if not guild:
             return {"error": {"code": 404, "message": "Guild not found."}}
 
-        await update_welcome_message(guild.id, data.message)
+        await update_welcome_message(self.bot.pool, guild.id, data.message)
 
         return {"status": 200, "message": "Success."}
 
@@ -186,7 +176,9 @@ class IPC(commands.Cog):
         if not member:
             return {"error": {"code": 404, "message": "Member not found."}}
 
-        return {"afk": await is_afk(user_id=member.id, guild_id=guild.id)}
+        return {
+            "afk": await is_afk(self.bot.pool, user_id=member.id, guild_id=guild.id)
+        }
 
     @Server.route(name="get_afk_details")
     async def _get_afk_details(self, data: ClientPayload):
@@ -201,10 +193,12 @@ class IPC(commands.Cog):
         if not member:
             return {"error": {"code": 404, "message": "Member not found."}}
 
-        if not await is_afk(user_id=member.id, guild_id=guild.id):
+        if not await is_afk(self.bot.pool, user_id=member.id, guild_id=guild.id):
             return {"error": {"code": 400, "message": "User is not AFK."}}
 
-        afk_details = await get_afk_details(user_id=member.id, guild_id=guild.id)
+        afk_details = await get_afk_details(
+            self.bot.pool, user_id=member.id, guild_id=guild.id
+        )
 
         afk_details["start"] = afk_details["start"].strftime("%d-%m-%Y %H:%M:%S")
 
@@ -223,7 +217,7 @@ class IPC(commands.Cog):
         if not member:
             return {"error": {"code": 404, "message": "Member not found."}}
 
-        if not await is_afk(user_id=user.id, guild_id=guild.id):
+        if not await is_afk(self.bot.pool, user_id=user.id, guild_id=guild.id):
             if data.reason and len(data.reason) > 100:
                 return {"error": {"code": 400, "message": "AFK reason too long."}}
 
@@ -236,13 +230,14 @@ class IPC(commands.Cog):
                 pass
 
             await set_afk(
+                self.bot.pool,
                 user_id=member.id,
                 guild_id=guild.id,
-                reason=data.reason or "Unspecified.",
+                reason=data.reason,
             )
 
         else:
-            await remove_afk(user_id=member.id, guild_id=guild.id)
+            await remove_afk(self.bot.pool, user_id=member.id, guild_id=guild.id)
 
             if member.display_name.startswith("[AFK]"):
                 try:
@@ -256,5 +251,5 @@ class IPC(commands.Cog):
         return {"status": 200, "message": "Success."}
 
 
-async def setup(bot):
+async def setup(bot: FumeGuard):
     await bot.add_cog(IPC(bot))
