@@ -112,7 +112,7 @@ class FumeGuard(commands.AutoShardedBot):
             except Exception as e:
                 self.log.error(f"Failed to load extension {_extension}.", exc_info=e)
 
-    @tasks.loop(minutes=15)
+    @tasks.loop(minutes=30)
     async def _update_status_items(self):
         self._status_items = cycle(
             [
@@ -135,7 +135,7 @@ class FumeGuard(commands.AutoShardedBot):
         self._update_status_items.start()
         self._change_status.start()
 
-        self.log.info("FumeTool is ready.")
+        self.log.info("FumeGuard is ready.")
 
     async def on_message(self, message: discord.Message) -> None:
         if message.author.bot:
