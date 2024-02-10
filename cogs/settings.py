@@ -8,6 +8,7 @@ from discord.ext import commands
 from utils.cd import cooldown_level_1
 from utils.logger import log_mod_action
 from utils.modals import WelcomeMessageModal
+from utils.checks import settings_perms_check
 from utils.db import (
     get_mod_log_channel,
     update_mod_log_channel,
@@ -30,12 +31,8 @@ class Settings(
     def __init__(self, bot: FumeGuard):
         self.bot: FumeGuard = bot
 
-    @staticmethod
-    async def _settings_perms_check(ctx: discord.Interaction):
-        return ctx.user.guild_permissions.manage_guild
-
     @app_commands.command(name="mod_log")
-    @app_commands.check(_settings_perms_check)
+    @app_commands.check(settings_perms_check)
     @app_commands.checks.dynamic_cooldown(cooldown_level_1)
     async def _set_mod_log(
         self, ctx: discord.Interaction, channel: Optional[discord.TextChannel] = None
@@ -101,7 +98,7 @@ class Settings(
                 )
 
     @app_commands.command(name="member_log")
-    @app_commands.check(_settings_perms_check)
+    @app_commands.check(settings_perms_check)
     @app_commands.checks.dynamic_cooldown(cooldown_level_1)
     async def _set_member_log(
         self, ctx: discord.Interaction, channel: Optional[discord.TextChannel] = None
@@ -171,7 +168,7 @@ class Settings(
         name="welcome_message",
         description="Set the welcome message which will bd DMed to a member joining the server.",
     )
-    @app_commands.check(_settings_perms_check)
+    @app_commands.check(settings_perms_check)
     @app_commands.checks.dynamic_cooldown(cooldown_level_1)
     async def _set_welcome_message(self, ctx: discord.Interaction):
         """Set the welcome message for the server."""
@@ -225,20 +222,6 @@ class Settings(
                     description="Welcome message has been updated.",
                     color="green",
                 )
-
-    @_set_mod_log.error
-    @_set_member_log.error
-    @_set_welcome_message.error
-    async def _settings_perms_check_error(
-        self, ctx: discord.Interaction, error: app_commands.AppCommandError
-    ):
-        if isinstance(error, app_commands.CheckFailure):
-            # noinspection PyUnresolvedReferences
-            return await ctx.response.send_message(
-                "You do not have permissions to execute this command."
-                "\n **Required Permission** : *Manage Server*",
-                ephemeral=True,
-            )
 
 
 async def setup(bot: FumeGuard):

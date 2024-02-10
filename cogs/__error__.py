@@ -37,7 +37,7 @@ class Error(commands.Cog):
                 message = f"You are on cooldown. Please try again in **{round(error.retry_after, 2)}** seconds."
 
             elif isinstance(error, app_commands.errors.CheckFailure):
-                return
+                message = error.__str__()
 
             else:
                 embed = discord.Embed(colour=self.bot.embed_color)

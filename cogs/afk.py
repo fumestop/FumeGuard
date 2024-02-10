@@ -8,6 +8,7 @@ from discord import app_commands
 from discord.ext import commands
 
 from utils.cd import cooldown_level_0
+from utils.checks import afk_perms_check
 from utils.db import is_afk, get_afk_details, get_afk_members, set_afk, remove_afk
 
 if TYPE_CHECKING:
@@ -23,10 +24,6 @@ class Afk(
 ):
     def __init__(self, bot: FumeGuard):
         self.bot: FumeGuard = bot
-
-    @staticmethod
-    async def _afk_perms(ctx: discord.Interaction):
-        return ctx.guild.me.guild_permissions.manage_nicknames
 
     @staticmethod
     async def _process_mentions(pool: aiomysql.Pool, message: discord.Message):
@@ -48,7 +45,7 @@ class Afk(
             await self._process_mentions(self.bot.pool, message)
 
     @app_commands.command(name="set")
-    @app_commands.check(_afk_perms)
+    @app_commands.check(afk_perms_check)
     @app_commands.checks.dynamic_cooldown(cooldown_level_0)
     async def _afk_set(self, ctx: discord.Interaction, reason: Optional[str] = None):
         """Sets your AFK status.
@@ -93,7 +90,7 @@ class Afk(
             await ctx.edit_original_response(content="You are already afk.")
 
     @app_commands.command(name="reset")
-    @app_commands.check(_afk_perms)
+    @app_commands.check(afk_perms_check)
     @app_commands.checks.dynamic_cooldown(cooldown_level_0)
     async def _afk_reset(self, ctx: discord.Interaction):
         """Resets your AFK status."""
@@ -183,19 +180,6 @@ class Afk(
         else:
             # noinspection PyUnresolvedReferences
             await ctx.edit_original_response(content="No members are afk.")
-
-    @_afk_set.error
-    @_afk_reset.error
-    async def _afk_perms_error(
-        self, ctx: discord.Interaction, error: app_commands.AppCommandError
-    ):
-        if isinstance(error, app_commands.CheckFailure):
-            # noinspection PyUnresolvedReferences
-            return await ctx.response.send_message(
-                "I need the **Manage Nicknames** permission in this server "
-                "to set your AFK status.",
-                ephemeral=True,
-            )
 
 
 async def setup(bot: FumeGuard):

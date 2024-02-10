@@ -8,6 +8,7 @@ from discord.ext import commands
 from utils.logger import log_role_action
 from utils.cd import cooldown_level_0
 from utils.modals import RoleColorModal
+from utils.checks import roles_perms_check
 
 if TYPE_CHECKING:
     from bot import FumeGuard
@@ -22,12 +23,8 @@ class Roles(
     def __init__(self, bot: FumeGuard):
         self.bot: FumeGuard = bot
 
-    @staticmethod
-    async def _roles_perms_check(ctx: discord.Interaction):
-        return ctx.user.guild_permissions.manage_roles
-
     @app_commands.command(name="create")
-    @app_commands.check(_roles_perms_check)
+    @app_commands.check(roles_perms_check)
     @app_commands.checks.dynamic_cooldown(cooldown_level_0)
     @app_commands.choices(
         color=[
@@ -80,11 +77,6 @@ class Roles(
             The reason for creating the role.
 
         """
-        if not ctx.guild.me.guild_permissions.manage_roles:
-            return await ctx.edit_original_response(
-                content="I do not have the **Manage Roles** permission in this server."
-            )
-
         if color.value == "custom":
             modal = RoleColorModal()
             modal.ctx = ctx
@@ -133,7 +125,7 @@ class Roles(
         )
 
     @app_commands.command(name="add")
-    @app_commands.check(_roles_perms_check)
+    @app_commands.check(roles_perms_check)
     @app_commands.checks.dynamic_cooldown(cooldown_level_0)
     async def _role_add(
         self,
@@ -156,11 +148,6 @@ class Roles(
         """
         # noinspection PyUnresolvedReferences
         await ctx.response.defer(thinking=True)
-
-        if not ctx.guild.me.guild_permissions.manage_roles:
-            return await ctx.edit_original_response(
-                content="I do not have the **Manage Roles** permission in this server."
-            )
 
         if role in member.roles:
             return await ctx.edit_original_response(
@@ -191,7 +178,7 @@ class Roles(
         )
 
     @app_commands.command(name="remove")
-    @app_commands.check(_roles_perms_check)
+    @app_commands.check(roles_perms_check)
     @app_commands.checks.dynamic_cooldown(cooldown_level_0)
     async def _role_remove(
         self,
@@ -214,11 +201,6 @@ class Roles(
         """
         # noinspection PyUnresolvedReferences
         await ctx.response.defer(thinking=True)
-
-        if not ctx.guild.me.guild_permissions.manage_roles:
-            return await ctx.edit_original_response(
-                content="I do not have the **Manage Roles** permission in this server."
-            )
 
         if role not in member.roles:
             return await ctx.edit_original_response(
@@ -254,7 +236,7 @@ class Roles(
         )
 
     @app_commands.command(name="delete")
-    @app_commands.check(_roles_perms_check)
+    @app_commands.check(roles_perms_check)
     @app_commands.checks.dynamic_cooldown(cooldown_level_0)
     async def _role_delete(
         self,
@@ -274,11 +256,6 @@ class Roles(
         """
         # noinspection PyUnresolvedReferences
         await ctx.response.defer(thinking=True)
-
-        if not ctx.guild.me.guild_permissions.manage_roles:
-            return await ctx.edit_original_response(
-                content="I do not have the **Manage Roles** permission in this server."
-            )
 
         try:
             await role.delete()
@@ -303,21 +280,6 @@ class Roles(
             action="Role Deleted",
             reason=reason,
         )
-
-    @_role_create.error
-    @_role_add.error
-    @_role_remove.error
-    @_role_delete.error
-    async def _roles_perms_check_error(
-        self, ctx: discord.Interaction, error: app_commands.AppCommandError
-    ):
-        if isinstance(error, app_commands.CheckFailure):
-            # noinspection PyUnresolvedReferences
-            return await ctx.response.send_message(
-                "You do not have permissions to perform this command."
-                "\n**Required Permission** : *Manage Roles*",
-                ephemeral=True,
-            )
 
 
 async def setup(bot: FumeGuard):
