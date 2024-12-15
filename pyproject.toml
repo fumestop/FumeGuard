@@ -2,6 +2,10 @@
 name = "FumeGuard"
 version = "1.0.0"
 description = "Moderation, Roles, Logging, Welcome Messages, AFK status - YOU NAME IT - FumeGuard has got your community covered!"
+license = "AGPL-3.0"
+authors = [
+    { name="Sayan Bhattacharyya", email="sayan@sn1f3rt.dev" },
+]
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
