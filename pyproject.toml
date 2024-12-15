@@ -32,7 +32,7 @@ better-ipc = { git = "https://github.com/MiroslavRosenov/better-ipc/", rev = "ef
 
 [tool.ruff]
 line-length = 85
-target-version = "py313"
+target-version = "py312"
 
 [tool.ruff.lint.isort]
 section-order = ["future", "typing", "standard-library", "third-party", "first-party", "local-folder", "config"]
