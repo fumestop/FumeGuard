@@ -1,3 +1,40 @@
-[tool.black]
+[project]
+name = "FumeGuard"
+version = "1.0.0"
+description = "Moderation, Roles, Logging, Welcome Messages, AFK status - YOU NAME IT - FumeGuard has got your community covered!"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "aiomysql>=0.2.0",
+    "better-ipc",
+    "discord-py[speed]>=2.4.0",
+    "topggpy>=1.4.0",
+]
+
+[project.optional-dependencies]
+speed = [
+    "uvloop>=0.21.0",
+]
+
+[tool.uv]
+dev-dependencies = [
+    "pre-commit>=4.0.1",
+    "ruff>=0.8.3",
+]
+
+[tool.uv.sources]
+better-ipc = { git = "https://github.com/MiroslavRosenov/better-ipc/", rev = "efb145d9dabc0a90e4c6e32be08bd03ae4257249" }
+
+[tool.ruff]
 line-length = 85
-target-version = ["py311"]
+target-version = "py313"
+
+[tool.ruff.lint.isort]
+section-order = ["future", "typing", "standard-library", "third-party", "first-party", "local-folder", "config"]
+force-wrap-aliases = true
+combine-as-imports = true
+length-sort = true
+
+[tool.ruff.lint.isort.sections]
+"typing" = ["typing"]
+"config" = ["config"]

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from typing import TYPE_CHECKING, Optional
 
 from datetime import datetime
@@ -240,3 +241,96 @@ async def remove_afk(pool: aiomysql.Pool, user_id: int, guild_id):
             res = await cur.fetchone()
 
     return res
+
+
+async def automod_enable(pool: aiomysql.Pool, guild_id: int):
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cur:
+            await cur.execute(
+                "update guilds set AUTOMOD = 1 where GUILD_ID = %s;", (guild_id,)
+            )
+
+
+async def automod_disable(pool: aiomysql.Pool, guild_id: int):
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cur:
+            await cur.execute(
+                "update guilds set AUTOMOD = 0 where GUILD_ID = %s;", (guild_id,)
+            )
+
+
+async def automod_status(pool: aiomysql.Pool, guild_id: int):
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cur:
+            await cur.execute(
+                "select AUTOMOD from guilds where GUILD_ID = %s;", (guild_id,)
+            )
+            res = await cur.fetchone()
+
+    return True if res[0] else False
+
+
+async def automod_get_allowed_link_roles(pool: aiomysql.Pool, guild_id: int):
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cur:
+            await cur.execute(
+                "select AUTOMOD_LINK_SEND_ROLES from guilds where GUILD_ID = %s;",
+                guild_id,
+            )
+            res = await cur.fetchone()
+
+    return res[0].split("|") if res[0] else []
+
+
+async def automod_update_allowed_link_roles(
+    pool: aiomysql.Pool, guild_id: int, role_id: str, add: bool = True
+):
+    allowed_role_ids = await automod_get_allowed_link_roles(pool, guild_id)
+
+    if add:
+        allowed_role_ids.append(role_id)
+
+    else:
+        allowed_role_ids.remove(role_id)
+
+    allowed_role_ids = "|".join(allowed_role_ids)
+
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cur:
+            await cur.execute(
+                "update guilds set AUTOMOD_LINK_SEND_ROLES = %s where GUILD_ID = %s;",
+                (allowed_role_ids, guild_id),
+            )
+
+
+async def automod_get_allowed_embed_roles(pool: aiomysql.Pool, guild_id: int):
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cur:
+            await cur.execute(
+                "select AUTOMOD_LINK_EMBED_ROLES from guilds where GUILD_ID = %s;",
+                guild_id,
+            )
+            res = await cur.fetchone()
+
+    return res[0].split("|") if res[0] else None
+
+
+async def automod_update_allowed_embed_roles(
+    pool: aiomysql.Pool, guild_id: int, role_id: str, add: bool = True
+):
+    allowed_role_ids = await automod_get_allowed_embed_roles(pool, guild_id)
+
+    if add:
+        allowed_role_ids.append(role_id)
+
+    else:
+        allowed_role_ids.remove(role_id)
+
+    allowed_role_ids = "|".join(allowed_role_ids)
+
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cur:
+            await cur.execute(
+                "update guilds set AUTOMOD_LINK_EMBED_ROLES = %s where GUILD_ID = %s;",
+                (allowed_role_ids, guild_id),
+            )

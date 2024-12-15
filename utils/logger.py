@@ -1,16 +1,16 @@
 from __future__ import annotations
+
 from typing import Optional
 
+import discord
 import aiomysql
 
-import discord
-
 from utils.db import (
-    get_mod_log_channel,
-    get_member_log_channel,
     get_case_number,
-    increment_case_number,
+    get_mod_log_channel,
     get_welcome_message,
+    increment_case_number,
+    get_member_log_channel,
 )
 
 

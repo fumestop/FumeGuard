@@ -14,6 +14,16 @@ def afk_perms_check(ctx: discord.Interaction) -> bool:
     return True
 
 
+def automod_perms_check(ctx: discord.Interaction) -> bool:
+    if not ctx.user.guild_permissions.manage_guild:
+        raise app_commands.CheckFailure(
+            "You need the **Manage Server** permission in this server "
+            "to perform this action."
+        )
+
+    return True
+
+
 def kick_perms_check(ctx: discord.Interaction) -> bool:
     if not ctx.guild.me.guild_permissions.kick_members:
         raise app_commands.CheckFailure(

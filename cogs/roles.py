@@ -1,14 +1,15 @@
 from __future__ import annotations
+
 from typing import TYPE_CHECKING, Optional
 
 import discord
 from discord import app_commands
 from discord.ext import commands
 
-from utils.logger import log_role_action
 from utils.cd import cooldown_level_0
-from utils.modals import RoleColorModal
 from utils.checks import roles_perms_check
+from utils.logger import log_role_action
+from utils.modals import RoleColorModal
 
 if TYPE_CHECKING:
     from bot import FumeGuard

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from typing import TYPE_CHECKING, Optional
 
 from datetime import datetime
@@ -8,11 +9,12 @@ from discord import app_commands
 from discord.ext import commands
 
 from utils.cd import cooldown_level_0
+from utils.db import is_afk, set_afk, remove_afk, get_afk_details, get_afk_members
 from utils.checks import afk_perms_check
-from utils.db import is_afk, get_afk_details, get_afk_members, set_afk, remove_afk
 
 if TYPE_CHECKING:
     import aiomysql
+
     from bot import FumeGuard
 
 
