@@ -2,8 +2,9 @@ from __future__ import annotations
 
 from typing import Optional
 
-import discord
 import aiomysql
+
+import discord
 
 from utils.db import (
     get_case_number,
