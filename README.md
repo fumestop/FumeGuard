@@ -1,6 +1,6 @@
 # FumeGuard
 
-[![ci/gh-actions/ruff](https://github.com/FumeStop/FumeGuard/actions/workflows/ruff.yml/badge.svg)](https://github.com/FumeStop/FumeGuard/actions/workflows/ruff.yml)
+[![ci/gh-actions/lint](https://github.com/FumeStop/FumeGuard/actions/workflows/lint.yml/badge.svg)](https://github.com/FumeStop/FumeGuard/actions/workflows/lint.yml)
 
 > Moderation, Roles, Logging, Welcome Messages, AFK status - YOU NAME IT - FumeGuard has got your community covered!
 
