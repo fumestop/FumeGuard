@@ -78,7 +78,14 @@ class IPC(commands.Cog):
         guilds = dict()
 
         for guild in user.mutual_guilds:
-            member = await guild.fetch_member(user.id)
+            member = guild.get_member(user.id)
+
+            if member is None:
+                try:
+                    member = await guild.fetch_member(user.id)
+
+                except discord.HTTPException:
+                    continue
 
             guilds[guild.id] = {
                 "name": guild.name,
