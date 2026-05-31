@@ -10,9 +10,9 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "aiomysql==0.3.2",
-    "better-ipc",
     "click==8.4.1",
     "discord-py[speed]==2.7.1",
+    "fumestop-ext-ipc==1.0.0",
     "topggpy==1.4.0",
 ]
 
@@ -26,9 +26,6 @@ dev = [
     "pre-commit==4.6.0",
     "ruff==0.15.15",
 ]
-
-[tool.uv.sources]
-better-ipc = { git = "https://github.com/MiroslavRosenov/better-ipc/", rev = "efb145d9dabc0a90e4c6e32be08bd03ae4257249" }
 
 [tool.ruff]
 line-length = 85
