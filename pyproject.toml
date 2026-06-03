@@ -13,6 +13,7 @@ dependencies = [
     "click==8.4.1",
     "discord-py[speed]==2.7.1",
     "fumestop-ext-ipc==1.0.0",
+    "python-dotenv==1.2.2",
     "topggpy==1.4.0",
 ]
 
